@@ -27,7 +27,7 @@ GitHub에 내 브랜치를 올립니다. (git push origin feature/login)
 
 GitHub 웹사이트에서 develop 브랜치로 **Pull Request(PR)**를 생성합니다.
 
-# 📝 커밋 메시지 규칙 (Commit Convention)
+## 📝 커밋 메시지 규칙 (Commit Convention)
 
 커밋 메시지는 "나"를 위한 것이 아니라 "팀원"을 위한 것입니다. 무엇을 작업했는지 한눈에 알 수 있도록 **[태그]**를 반드시 붙여주세요.
 
@@ -53,7 +53,7 @@ feat: AI 건강 점수 분석 API 연동 완료
 - 위험도 Top 3 그래프 컴포넌트 추가
 
 
-# 🤝 Pull Request (PR) 및 코드 리뷰 규칙
+## 🤝 Pull Request (PR) 및 코드 리뷰 규칙
 
 다른 팀원의 코드를 합치기(Merge) 전에 확인하는 과정입니다.
 
@@ -73,7 +73,7 @@ PR 내용:
 
 최소 1명 이상의 팀원이 코드를 보고 Approve(승인)를 눌러야 Merge 할 수 있도록 GitHub 설정(Branch Protection)을 걸어둡니다.
 
-# 🎯 이슈 (Issue) 관리
+## 🎯 이슈 (Issue) 관리
 
 "내가 오늘 할 일", "발생한 버그"는 카카오톡이 아니라 GitHub Issues에 등록합니다.
 
