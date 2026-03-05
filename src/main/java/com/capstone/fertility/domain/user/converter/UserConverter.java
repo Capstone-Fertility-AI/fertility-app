@@ -1,0 +1,26 @@
+package com.capstone.fertility.domain.user.converter;
+
+import com.capstone.fertility.domain.user.dto.res.UserResDTO;
+import com.capstone.fertility.domain.user.entity.User;
+
+public class UserConverter {
+
+    public static UserResDTO.UserInfoDTO toDTO(User user) {
+        return UserResDTO.UserInfoDTO.builder()
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImageUrl())
+                .isTermsAgreed(user.isTermsAgreed())
+                .build();
+    }
+
+    // 로그인 응답 DTO (token + userInfo)
+    public static UserResDTO.LoginResDTO toLoginDTO(String accessToken, String refreshToken ,User user) {
+        return UserResDTO.LoginResDTO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(toDTO(user))
+                .build();
+    }
+
+}
