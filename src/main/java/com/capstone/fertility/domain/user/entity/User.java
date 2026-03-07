@@ -1,6 +1,7 @@
 package com.capstone.fertility.domain.user.entity;
 
 import com.capstone.fertility.domain.user.enums.Gender;
+import com.capstone.fertility.domain.user.enums.LoginType;
 import com.capstone.fertility.domain.user.enums.UserStatus;
 import com.capstone.fertility.global.common.BaseEntity;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "Users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // 기본 생성자 보호 (Lombok)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @Builder
 public class User extends BaseEntity {
 
@@ -21,8 +22,21 @@ public class User extends BaseEntity {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "kakao_id", nullable = false, unique = true)
-    private String kakaoId;
+    @Column(name = "kakao_id", unique = true)
+    private Long kakaoId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "login_type", length = 20, nullable = false)
+    private LoginType loginType;
+
+    @Column(name = "email", length = 100, unique = true)
+    private String email;
+
+    @Column(name = "password", length = 255)
+    private String password;
+
+    @Column(name = "partner_code", length = 50, unique = true)
+    private String partnerCode;
 
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;

@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 0. OAuth 로그인 과정은 JWT 검사 대상에서 제외
-        if (path.startsWith("/auth/") || path.startsWith("/oauth/")) {
+        if (path.startsWith("/oauth/")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -71,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         CustomPrincipal principal = new CustomPrincipal(userId, role);
 
         //5. 권한 생성
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role.name());
 
         //6. UsernamePasswordAuthenticationToken 만들기
         //스프링 시큐리티는 인증된 사용자를 Authentication 객체로 표현함.

@@ -57,7 +57,7 @@ public class SecurityConfig {
                 // - /auth/** : 회원가입, 일반 로그인, 토큰 재발급 등 자체 인증 관련 API
                 // - /oauth/** : 카카오, 구글 등 소셜 로그인 진행 및 콜백 API
                 // 이 두 경로는 사용자가 아직 '토큰이 없는 상태'로 접근하므로 반드시 통과시켜야 합니다.
-                .requestMatchers("/auth/**", "/oauth/**").permitAll()
+                .requestMatchers("/oauth/**").permitAll()
 
                 // 2. [API 문서(Swagger) 허용]
                 // 프론트엔드 개발자가 API 명세서를 보고 테스트할 수 있도록
