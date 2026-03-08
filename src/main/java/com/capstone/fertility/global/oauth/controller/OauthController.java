@@ -66,7 +66,7 @@ public class OauthController {
 
         return ApiResponse.onSuccess(
                 OauthSuccessCode.KAKAO_LOGIN_SUCCESS,
-                UserConverter.toLoginDTO(accessToken, refreshToken, user)
+                UserConverter.toLoginResDTO(accessToken, refreshToken, user)
         );
     }
 }

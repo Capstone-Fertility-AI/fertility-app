@@ -1,6 +1,6 @@
 package com.capstone.fertility.global.auth.service;
 
-import com.capstone.fertility.domain.user.code.UserErrorCode;
+import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.global.apiPayLoad.code.GeneralErrorCode;
 import com.capstone.fertility.global.apiPayLoad.exception.GeneralException;

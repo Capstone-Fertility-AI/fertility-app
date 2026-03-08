@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+// 카카오 서버가 우리에게 주는 유저 정보(닉네임, 프사 등)를 담는 바구니
 @Getter
 @Builder
 @NoArgsConstructor
@@ -13,6 +14,7 @@ public class KakaoUserResponse {
     private Long id;
     private KakaoAccount kakao_account;
 
+    // JSON 중첩 구조를 풀기 위한 내부 클래스들
     @Getter
     @Builder
     @NoArgsConstructor

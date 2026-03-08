@@ -7,6 +7,7 @@ package com.capstone.fertility.global.oauth.service;
  */
 
 import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.domain.user.enums.LoginType;
 import com.capstone.fertility.domain.user.repository.UserRepository;
 import com.capstone.fertility.global.oauth.model.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +23,17 @@ public class OauthUserService {
 
     @Transactional
     public User handleKakaoUser(KakaoUserInfo info) {
-        return userRepository.findByKakaoId(info.getKakaoId())
+        return userRepository.findByKakaoId(Long.valueOf(info.getKakaoId()))
                 .orElseGet(() -> createKakaoUser(info));
     }
 
     private User createKakaoUser(KakaoUserInfo info) {
         User user = User.builder()
-                .kakaoId(info.getKakaoId())
+                .kakaoId(Long.valueOf(info.getKakaoId()))
                 .nickname(info.getNickname())
                 .profileImageUrl(info.getProfileImageUrl())
+                .loginType(LoginType.KAKAO)
+                .isTermsAgreed(false)
                 .build();
 
         return userRepository.save(user);

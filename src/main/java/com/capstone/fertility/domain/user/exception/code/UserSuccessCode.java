@@ -1,4 +1,4 @@
-package com.capstone.fertility.domain.user.code;
+package com.capstone.fertility.domain.user.exception.code;
 
 import com.capstone.fertility.global.apiPayLoad.code.BaseSuccessCode;
 import lombok.AllArgsConstructor;
