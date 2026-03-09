@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    # 💡 PostgreSQL 설정 (기본 포트 5432, 로컬 DB 이름은 fertility_db로 가정)
+    url: jdbc:postgresql://localhost:5432/fertility_db
+    username: postgres # 로컬 PostgreSQL 기본 계정
+    password: 1125 # .env에서 주입
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # 로컬에서는 엔티티 변경 시 자동으로 DB 테이블을 수정해주는 update 사용
+      ddl-auto: update
+
+jwt:
+  # 로컬용 시크릿 키와 만료시간(1시간)
+  secret: ${JWT_SECRET:local-jwt-secret-key-for-development-environment}
+  expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+oauth:
+  kakao:
+    client-id: 838707e96d5eeea56f2303d6ad818d20
+    client-secret: wj9cjr1tQqDTbRXG8RnYM04PRQPMkjXZ
+    authorize-uri: https://kauth.kakao.com/oauth/authorize
+    redirect-uri: http://localhost:8080/oauth/kakao/callback
+    token-uri: https://kauth.kakao.com/oauth/token
+    user-info-uri: https://kapi.kakao.com/v2/user/me
