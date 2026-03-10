@@ -2,6 +2,7 @@ package com.capstone.fertility.domain.user.controller;
 
 import com.capstone.fertility.domain.user.dto.res.UserResDTO;
 import com.capstone.fertility.domain.user.exception.code.UserSuccessCode;
+import com.capstone.fertility.domain.user.service.command.UserCommandService;
 import com.capstone.fertility.domain.user.service.query.UserQueryService;
 import com.capstone.fertility.global.apiPayLoad.ApiResponse;
 import com.capstone.fertility.global.security.CustomPrincipal;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserQueryService userQueryService;
+    private final UserCommandService userCommandService;
 
     @GetMapping("/me")
     public ApiResponse<UserResDTO.UserInfoDTO> getMyInfo(

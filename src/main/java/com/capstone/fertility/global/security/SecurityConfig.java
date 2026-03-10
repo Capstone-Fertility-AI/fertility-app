@@ -57,14 +57,17 @@ public class SecurityConfig {
                 // - /auth/** : 회원가입, 일반 로그인, 토큰 재발급 등 자체 인증 관련 API
                 // - /oauth/** : 카카오, 구글 등 소셜 로그인 진행 및 콜백 API
                 // 이 두 경로는 사용자가 아직 '토큰이 없는 상태'로 접근하므로 반드시 통과시켜야 합니다.
-                .requestMatchers("/oauth/**").permitAll()
+                .requestMatchers( "/oauth/**",
+                        "/auth/signup",
+                        "/auth/login",
+                        "/auth/refresh").permitAll()
 
                 // 2. [API 문서(Swagger) 허용]
                 // 프론트엔드 개발자가 API 명세서를 보고 테스트할 수 있도록
                 // Swagger UI 페이지와, 그 페이지를 그리는 데 필요한 내부 JSON 데이터(/v3/api-docs/**) 접근을 허용합니다.
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
 
-                // 3. [에러 페이지 허용]
+                // 3. git checkout develop[에러 페이지 허용]
                 // 스프링 부트 내부에서 예외가 발생해 /error 경로로 포워딩될 때,
                 // 이 경로마저 인증이 막혀있으면 진짜 에러 원인이 숨겨지고 '403 Forbidden'만 뜨는 것을 방지합니다.
                 .requestMatchers("/error").permitAll()
