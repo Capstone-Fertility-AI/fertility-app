@@ -2,6 +2,7 @@ package com.capstone.fertility.domain.user.converter;
 
 import com.capstone.fertility.domain.user.dto.res.UserResDTO;
 import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.domain.user.enums.LoginType;
 
 public class UserConverter {
 
@@ -23,4 +24,13 @@ public class UserConverter {
                 .build();
     }
 
+    public static User toLocalUser(String email, String encodedPassword, String nickname) {
+        return User.builder()
+                .email(email)
+                .password(encodedPassword)
+                .nickname(nickname)
+                .loginType(LoginType.LOCAL)
+                .isTermsAgreed(false)
+                .build();
+    }
 }

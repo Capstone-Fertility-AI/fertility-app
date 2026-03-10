@@ -1,39 +1,54 @@
 package com.capstone.fertility.domain.user.service.command;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.capstone.fertility.domain.user.converter.UserConverter;
 import com.capstone.fertility.domain.user.dto.req.UserReqDTO;
 import com.capstone.fertility.domain.user.dto.res.UserResDTO;
 import com.capstone.fertility.domain.user.entity.User;
-import com.capstone.fertility.domain.user.repository.UserRepository;
-
+import com.capstone.fertility.domain.user.enums.Role;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
+import com.capstone.fertility.domain.user.repository.UserRepository;
+import com.capstone.fertility.global.auth.service.RefreshTokenProvider;
+import com.capstone.fertility.global.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserCommandServiceImpl implements UserCommandService {
 
-    // 1. UserCommandService 인터페이스를 구현(implements)해야 합니다.
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenProvider refreshTokenProvider;
 
-    // 2. 인터페이스에 정의된 메서드를 @Override 하여 구현해야 합니다.
-    //    이것이 바로 코드가 들어갈 "방" 입니다.
+    @Override
+    public UserResDTO.LoginResDTO signUp(UserReqDTO.SignUpReqDTO request) {
+        if (userRepository.existsByEmail(request.email())){
+            throw new UserException(UserErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.password());
+
+        User newUser = UserConverter.toLocalUser(request.email(), encodedPassword, request.nickname());
+        User savedUser = userRepository.save(newUser);
+
+        String accessToken = jwtTokenProvider.createToken(savedUser.getId(), Role.USER);
+        String refreshToken = refreshTokenProvider.createAndSave(savedUser.getId());
+
+        return UserConverter.toLoginResDTO(accessToken, refreshToken, savedUser);
+    }
+
     @Override
     public UserResDTO.UserInfoDTO updateMyInfo(Long userId, UserReqDTO.UpdateProfileDTO request) {
-        // 3. 메서드 안에서 로직을 수행합니다.
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
 
         user.updateProfile(request.getNickname(), request.getProfileImageUrl());
 
-        // 4. 메서드의 가장 마지막에 return 문으로 결과를 반환합니다.
-        //    이때 사용되는 'user' 변수는 바로 위에서 조회한 결과물입니다.
         return UserConverter.toUserInfoDTO(user);
     }
 }

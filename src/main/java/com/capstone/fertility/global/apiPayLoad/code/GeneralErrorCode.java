@@ -41,8 +41,9 @@ public enum GeneralErrorCode implements BaseErrorCode{
     JSON_PARSE_ERROR(HttpStatus.BAD_REQUEST, "JSON400", "요청 본문(JSON)을 읽을 수 없습니다."),
 
     // [그 외]
-    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "COMMON400", "유효성 검증에 실패했습니다.");
+    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "COMMON400", "유효성 검증에 실패했습니다."),
 
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH4001", "유효하지 않은 Refresh Token입니다.");
 
     private final HttpStatus status;
     private final String code;
