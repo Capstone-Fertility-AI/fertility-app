@@ -8,4 +8,6 @@ public interface UserCommandService {
     UserResDTO.LoginResDTO signUp(UserReqDTO.SignUpReqDTO request);
 
     UserResDTO.UserInfoDTO updateMyInfo(Long userId, UserReqDTO.UpdateProfileDTO request);
+
+    UserResDTO.LoginResDTO login(UserReqDTO.LoginReqDTO request);
 }

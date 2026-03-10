@@ -51,4 +51,19 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         return UserConverter.toUserInfoDTO(user);
     }
+
+    @Override
+    public UserResDTO.LoginResDTO login(UserReqDTO.LoginReqDTO request) {
+
+        User user = userRepository.findByEmail(request.email()).orElseThrow(() -> new UserException(UserErrorCode.USER_EMAIL_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())){
+            throw new UserException(UserErrorCode.INVALID_PASSWORD);
+        }
+
+        String accessToken = jwtTokenProvider.createToken(user.getId(), Role.USER);
+        String refreshToken = refreshTokenProvider.createAndSave(user.getId());
+
+        return UserConverter.toLoginResDTO(accessToken, refreshToken, user);
+    }
 }
