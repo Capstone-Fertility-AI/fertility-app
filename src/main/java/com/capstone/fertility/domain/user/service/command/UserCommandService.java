@@ -10,4 +10,6 @@ public interface UserCommandService {
     UserResDTO.UserInfoDTO updateMyInfo(Long userId, UserReqDTO.UpdateProfileDTO request);
 
     UserResDTO.LoginResDTO login(UserReqDTO.LoginReqDTO request);
+
+    void withdraw(Long userId);
 }

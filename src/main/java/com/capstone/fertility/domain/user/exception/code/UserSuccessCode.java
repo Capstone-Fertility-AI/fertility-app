@@ -17,7 +17,8 @@ public enum UserSuccessCode implements BaseSuccessCode {
     USER_PROFILE_UPDATE_SUCCESS(HttpStatus.OK, "USER200_5", "프로필 수정에 성공했습니다."),
 
     // [파트너 연동 성공]
-    USER_PARTNER_LINK_SUCCESS(HttpStatus.OK, "USER200_6", "파트너 연동에 성공했습니다.");
+    USER_PARTNER_LINK_SUCCESS(HttpStatus.OK, "USER200_6", "파트너 연동에 성공했습니다."),
+    USER_WITH_DRAW_SUCCESS(HttpStatus.OK, "USER200_7", "회원 탈퇴가 완료되었습니다");
 
     private final HttpStatus status;
     private final String code;
