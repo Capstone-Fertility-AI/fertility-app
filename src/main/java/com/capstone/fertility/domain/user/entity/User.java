@@ -96,6 +96,15 @@ public class User extends BaseEntity {
         this.isTermsAgreed = isTermsAgreed;
     }
 
+    public void updateProfile(String nickname, String profileImageUrl) {
+        // PATCH 요청의 특성을 반영하여, null이 아닌 값만 변경합니다.
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
+    }
     /**
      * 파트너 연결
      */

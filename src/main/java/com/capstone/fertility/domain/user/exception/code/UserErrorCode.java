@@ -25,4 +25,19 @@ public enum UserErrorCode implements BaseErrorCode {
     private final HttpStatus status;
     private final String code;
     private final String message;
+
+    @Override
+    public HttpStatus getStatus() {
+        return status;
+    }
+
+    @Override
+    public String getCode() {
+        return code;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }

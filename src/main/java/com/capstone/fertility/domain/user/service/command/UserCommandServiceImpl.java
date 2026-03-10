@@ -41,4 +41,14 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         return UserConverter.toLoginResDTO(accessToken, refreshToken, savedUser);
     }
+
+    @Override
+    public UserResDTO.UserInfoDTO updateMyInfo(Long userId, UserReqDTO.UpdateProfileDTO request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
+
+        user.updateProfile(request.getNickname(), request.getProfileImageUrl());
+
+        return UserConverter.toUserInfoDTO(user);
+    }
 }
