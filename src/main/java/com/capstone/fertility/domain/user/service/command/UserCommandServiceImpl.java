@@ -9,6 +9,7 @@ import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
 import com.capstone.fertility.domain.user.repository.UserRepository;
 import com.capstone.fertility.global.auth.service.RefreshTokenProvider;
+import com.capstone.fertility.global.oauth.client.KakaoApiClient;
 import com.capstone.fertility.global.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenProvider refreshTokenProvider;
+    private final KakaoApiClient kakaoApiClient;
 
     @Override
     public UserResDTO.LoginResDTO signUp(UserReqDTO.SignUpReqDTO request) {
@@ -40,6 +42,23 @@ public class UserCommandServiceImpl implements UserCommandService {
         String refreshToken = refreshTokenProvider.createAndSave(savedUser.getId());
 
         return UserConverter.toLoginResDTO(accessToken, refreshToken, savedUser);
+    }
+
+    @Override
+    public void withdraw(Long userId) {
+        // 1. DB에서 탈퇴할 유저 정보를 가져옵니다.
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
+
+        // 2. 카카오 서버에 연결 끊기(Unlink) 요청을 보냅니다.
+        try {
+            kakaoApiClient.unlinkUser(user.getKakaoId()); // 수정
+        } catch (Exception e) {
+            System.err.println("카카오 언링크 실패: " + e.getMessage());
+        }
+
+        // 3. 우리 쪽 데이터베이스에서 유저 정보를 삭제합니다 (Hard Delete).
+        userRepository.delete(user);
     }
 
     @Override

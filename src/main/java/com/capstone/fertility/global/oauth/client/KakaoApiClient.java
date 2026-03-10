@@ -18,7 +18,13 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @RequiredArgsConstructor
 public class KakaoApiClient {
+   
+    // @Value("${oauth.kakao.admin-key}") // 추가
+    // private String adminKey;
 
+    @Value("${oauth.kakao.admin-key:dummy-admin-key}")
+    private String adminKey;
+    
     @Value("${oauth.kakao.client-id}")
     private String clientId;
 
@@ -33,6 +39,9 @@ public class KakaoApiClient {
 
     @Value("${oauth.kakao.user-info-uri}")
     private String userInfoUri;
+
+    @Value("${oauth.kakao.unlink-uri:https://kapi.kakao.com/v1/user/unlink}")
+    private String unlinkUri;
 
     private final RestTemplate restTemplate;
 
@@ -70,5 +79,19 @@ public class KakaoApiClient {
                 restTemplate.exchange(userInfoUri, HttpMethod.GET, request, KakaoUserResponse.class);
 
         return response.getBody();
+    }
+
+    public void unlinkUser(Long kakaoId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "KakaoAK " + adminKey);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("target_id_type", "user_id");
+        params.add("target_id", String.valueOf(kakaoId));
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        restTemplate.postForEntity(unlinkUri, request, String.class);
     }
 }

@@ -42,5 +42,14 @@ public class UserController {
         // 성공 응답을 반환합니다.
         return ApiResponse.onSuccess(UserSuccessCode.USER_PROFILE_UPDATE_SUCCESS, updatedUser);
     }
+
+    @DeleteMapping("/me")
+    public ApiResponse<String> withdraw(
+        @AuthenticationPrincipal CustomPrincipal principal
+    ) {
+        userCommandService.withdraw(principal.getUserId()); // 수정
+        
+        return ApiResponse.onSuccess(UserSuccessCode.USER_WITH_DRAW_SUCCESS, "회원 탈퇴가 완료되었습니다.");
+    }
 }
 
