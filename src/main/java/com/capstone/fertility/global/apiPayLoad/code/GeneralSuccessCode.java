@@ -10,7 +10,8 @@ public enum GeneralSuccessCode implements BaseSuccessCode{
 
     OK(HttpStatus.OK, "SUCCESS200_1", "요청이 성공적으로 처리되었습니다."),
     CREATED(HttpStatus.CREATED, "CREATED201_1", "리소스가 성공적으로 생성되었습니다."),
-    TOKEN_REFRESH_SUCCESS(HttpStatus.OK, "SUCCESS200_2", "토큰 갱신에 성공했습니다.");
+    TOKEN_REFRESH_SUCCESS(HttpStatus.OK, "SUCCESS200_2", "토큰 갱신에 성공했습니다."),
+    TEST_SESSION_CREATED(HttpStatus.CREATED, "COMMON200", "검사 세션이 생성되었습니다.");
 
     private final HttpStatus status;
     private final String code;
