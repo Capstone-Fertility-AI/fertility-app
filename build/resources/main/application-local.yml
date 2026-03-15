@@ -1,5 +1,5 @@
 server:
-port: 8080
+  port: 8080
 
 spring:
   config:
@@ -8,13 +8,10 @@ spring:
 
   datasource:
     # 💡 PostgreSQL 설정 (기본 포트 5432, 로컬 DB 이름은 fertility_db로 가정)
-    # 로컬에서 SSL 타임아웃 시 url 끝에 ?ssl=false 추가
     url: jdbc:postgresql://localhost:5432/fertility_db
     username: postgres # 로컬 PostgreSQL 기본 계정
-    password: ${LOCAL_DB_PASSWORD:postgres} # .env에서 주입, 없으면 postgres 사용
+    password: 1125 # .env에서 주입
     driver-class-name: org.postgresql.Driver
-    hikari:
-      connection-timeout: 10000 # 10초 (연결 대기 시간)
 
   jpa:
     hibernate:
@@ -25,3 +22,12 @@ jwt:
   # 로컬용 시크릿 키와 만료시간(1시간)
   secret: ${JWT_SECRET:local-jwt-secret-key-for-development-environment}
   expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+oauth:
+  kakao:
+    client-id: 838707e96d5eeea56f2303d6ad818d20
+    client-secret: wj9cjr1tQqDTbRXG8RnYM04PRQPMkjXZ
+    authorize-uri: https://kauth.kakao.com/oauth/authorize
+    redirect-uri: http://localhost:8080/oauth/kakao/callback
+    token-uri: https://kauth.kakao.com/oauth/token
+    user-info-uri: https://kapi.kakao.com/v2/user/me

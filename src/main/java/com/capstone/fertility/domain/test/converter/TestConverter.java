@@ -25,4 +25,28 @@ public class TestConverter {
                 .sessionId(session.getId())
                 .build();
     }
+
+    /**
+     * 진행 중인 세션 복구용 DTO로 변환 (저장된 모든 필드 + currentStep)
+     */
+    public static TestResDTO.CurrentSessionResDTO toCurrentSessionResDTO(TestSession session) {
+        return TestResDTO.CurrentSessionResDTO.builder()
+                .sessionId(session.getId())
+                .currentStep(session.getCurrentStep())
+                .age(session.getAge())
+                .height(session.getHeight())
+                .weight(session.getWeight())
+                .menarcheAge(session.getMenarcheAge())
+                .parity(session.getParity())
+                .pcos(session.getPcos())
+                .endo(session.getEndo())
+                .uf(session.getUf())
+                .pid(session.getPid())
+                .chlam(session.getChlam())
+                .gon(session.getGon())
+                .smokeLevel(session.getSmokeLevel())
+                .binge12(session.getBinge12())
+                .sleepHours(session.getSleepHours())
+                .build();
+    }
 }
