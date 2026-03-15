@@ -25,4 +25,29 @@ public class TestConverter {
                 .sessionId(session.getId())
                 .build();
     }
+
+    /**
+     * 검사 세션 → 상세 조회 DTO (임시 저장 복구용)
+     */
+    public static TestResDTO.SessionDetailDTO toSessionDetailDTO(TestSession session) {
+        return TestResDTO.SessionDetailDTO.builder()
+                .sessionId(session.getId())
+                .status(session.getStatus())
+                .currentStep(session.getCurrentStep())
+                .age(session.getAge())
+                .height(session.getHeight())
+                .weight(session.getWeight())
+                .menarcheAge(session.getMenarcheAge())
+                .parity(session.getParity())
+                .pcos(session.getPcos())
+                .endo(session.getEndo())
+                .uf(session.getUf())
+                .pid(session.getPid())
+                .chlam(session.getChlam())
+                .gon(session.getGon())
+                .smokeLevel(session.getSmokeLevel())
+                .binge12(session.getBinge12())
+                .sleepHours(session.getSleepHours())
+                .build();
+    }
 }
