@@ -67,4 +67,8 @@ public class TestSession extends BaseEntity {
 
     @Column(name = "binge12")
     private Integer binge12;
+
+    @Column(name = "sleep_hours")
+    @Setter
+    private Integer sleepHours;
 }
