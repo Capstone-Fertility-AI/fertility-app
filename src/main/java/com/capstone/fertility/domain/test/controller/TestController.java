@@ -1,11 +1,11 @@
 package com.capstone.fertility.domain.test.controller;
 
-import com.capstone.fertility.domain.test.dto.req.StepSaveReqDTO;
+import com.capstone.fertility.domain.test.dto.req.TestReqDTO;
 import com.capstone.fertility.domain.test.dto.res.TestResDTO;
+import com.capstone.fertility.domain.test.exception.code.TestSuccessCode;
 import com.capstone.fertility.domain.test.service.command.TestCommandService;
 import com.capstone.fertility.domain.test.service.query.TestQueryService;
 import com.capstone.fertility.global.apiPayLoad.ApiResponse;
-import com.capstone.fertility.global.apiPayLoad.code.GeneralSuccessCode;
 import com.capstone.fertility.global.security.CustomPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -27,7 +27,7 @@ public class TestController {
             @AuthenticationPrincipal CustomPrincipal principal
     ) {
         TestResDTO.CreateSessionResDTO result = testCommandService.createSession(principal.getUserId());
-        return ApiResponse.onSuccess(GeneralSuccessCode.TEST_SESSION_CREATED, result);
+        return ApiResponse.onSuccess(TestSuccessCode.TEST_SESSION_CREATED, result);
     }
 
     @GetMapping("/{sessionId}")
@@ -37,7 +37,7 @@ public class TestController {
             @PathVariable Long sessionId
     ) {
         TestResDTO.SessionDetailDTO result = testQueryService.getSession(principal.getUserId(), sessionId);
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
+        return ApiResponse.onSuccess(TestSuccessCode.TEST_SESSION_FETCHED, result);
     }
 
     @PostMapping("/{sessionId}/step")
@@ -45,9 +45,9 @@ public class TestController {
     public ApiResponse<Void> saveStep(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId,
-            @Valid @RequestBody StepSaveReqDTO request
+            @Valid @RequestBody TestReqDTO.StepSaveReqDTO request
     ) {
         testCommandService.saveStep(principal.getUserId(), sessionId, request);
-        return ApiResponse.onSuccess(GeneralSuccessCode.TEST_STEP_SAVED, null);
+        return ApiResponse.onSuccess(TestSuccessCode.TEST_STEP_SAVED, null);
     }
 }

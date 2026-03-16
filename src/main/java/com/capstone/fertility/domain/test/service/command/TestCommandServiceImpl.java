@@ -1,7 +1,7 @@
 package com.capstone.fertility.domain.test.service.command;
 
 import com.capstone.fertility.domain.test.converter.TestConverter;
-import com.capstone.fertility.domain.test.dto.req.StepSaveReqDTO;
+import com.capstone.fertility.domain.test.dto.req.TestReqDTO;
 import com.capstone.fertility.domain.test.dto.res.TestResDTO;
 import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.test.enums.TestSessionStatus;
@@ -36,7 +36,7 @@ public class TestCommandServiceImpl implements TestCommandService {
     }
 
     @Override
-    public void saveStep(Long userId, Long sessionId, StepSaveReqDTO request) {
+    public void saveStep(Long userId, Long sessionId, TestReqDTO.StepSaveReqDTO request) {
         TestSession session = testSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new TestException(TestErrorCode.SESSION_NOT_FOUND));
 
