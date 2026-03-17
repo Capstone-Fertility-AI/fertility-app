@@ -9,6 +9,7 @@ import lombok.*;
 @Entity
 @Table(name = "test_sessions")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -67,4 +68,12 @@ public class TestSession extends BaseEntity {
 
     @Column(name = "binge12")
     private Integer binge12;
+
+    /** 마지막 진행 단계 (1~9). 임시 저장/복구용 */
+    @Column(name = "current_step")
+    private Integer currentStep;
+
+    /** 9번 질문: 하루 수면 시간 */
+    @Column(name = "sleep_hours")
+    private Integer sleepHours;
 }
