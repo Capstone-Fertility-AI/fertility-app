@@ -20,7 +20,7 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
 
-      # 3. GitHub Secrets에 저장해둔 application.yml 파일을 프로젝트에 안전하게 주입 (에러 픽스 완료!)
+      # 3. GitHub Secrets에 저장해둔 application.yml 파일을 프로젝트에 안전하게 주입
       - name: Inject application.yml
         env:
           YAML_SECRET: ${{ secrets.APPLICATION_YML }}
@@ -55,12 +55,13 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # 1) 기존에 실행 중인 스프링 부트 애플리케이션 강제 종료
-            PID=$(pgrep -f .jar)
-            if [ -n "$PID" ]; then
-              echo "기존 서버를 종료합니다. PID: $PID"
-              kill -9 $PID
+            # 1) 기존에 실행 중인 스프링 부트 애플리케이션 강제 종료 (로봇 자살 방지 로직 적용)
+            if pgrep -x "java" > /dev/null; then
+              echo "기존 서버를 종료합니다."
+              pkill -x -9 java
               sleep 5
+            else
+              echo "현재 실행 중인 서버가 없습니다."
             fi
             
             # 2) 파일 이동 후 실행 준비
