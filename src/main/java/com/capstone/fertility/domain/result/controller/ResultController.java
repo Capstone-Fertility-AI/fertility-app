@@ -24,13 +24,13 @@ public class ResultController {
     @GetMapping("/history")
     @Operation(
             summary = "과거 검사 결과 이력(월별)",
-            description = "쿼리 없음: 올해·이번 달. year·month를 함께 지정하면 해당 연·월의 결과만 조회합니다. 본인 데이터만 반환합니다."
+            description = "쿼리 없음: year=2026, month=이번 달. year·month를 함께 지정하면 해당 연·월의 결과만 조회합니다. 본인 데이터만 반환합니다."
     )
     public ApiResponse<ResultResDTO.ResultHistoryDTO> getHistory(
             @AuthenticationPrincipal CustomPrincipal principal,
-            @Parameter(description = "연도 (month와 함께 사용)")
+            @Parameter(description = "연도 (생략 시 2026)")
             @RequestParam(required = false) Integer year,
-            @Parameter(description = "월 1~12 (year와 함께 사용)")
+            @Parameter(description = "월 1~12 (생략 시 이번 달)")
             @RequestParam(required = false) Integer month
     ) {
         ResultResDTO.ResultHistoryDTO result = resultQueryService.getHistory(principal.getUserId(), year, month);

@@ -22,6 +22,7 @@ public class ResultQueryServiceImpl implements ResultQueryService {
 
     private static final int MIN_YEAR = 2000;
     private static final int MAX_YEAR = 2100;
+    private static final int DEFAULT_YEAR = 2026;
 
     private final TestResultRepository testResultRepository;
 
@@ -30,16 +31,12 @@ public class ResultQueryServiceImpl implements ResultQueryService {
         int targetYear;
         int targetMonth;
 
-        if (year == null && month == null) {
-            LocalDate today = LocalDate.now();
-            targetYear = today.getYear();
-            targetMonth = today.getMonthValue();
-        } else if (year != null && month != null) {
-            targetYear = year;
-            targetMonth = month;
-        } else {
-            throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
-        }
+        // 파라미터 누락 허용 정책
+        // - year가 없으면 항상 2026으로 조회
+        // - month가 없으면 "이번 달"로 조회
+        LocalDate today = LocalDate.now();
+        targetYear = (year == null) ? DEFAULT_YEAR : year;
+        targetMonth = (month == null) ? today.getMonthValue() : month;
 
         validateYearMonth(targetYear, targetMonth);
 
