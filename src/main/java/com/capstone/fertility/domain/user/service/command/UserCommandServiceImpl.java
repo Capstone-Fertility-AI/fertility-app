@@ -48,7 +48,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public void withdraw(Long userId) {
         // 1. DB에서 탈퇴할 유저 정보를 가져옵니다.
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
 
         // 2. 카카오 서버에 연결 끊기(Unlink) 요청을 보냅니다.
         try {

@@ -41,13 +41,16 @@ public class TestController {
     }
 
     @PostMapping("/{sessionId}/step")
-    @Operation(summary = "검사 단계 임시 저장", description = "지정한 단계(1~9)의 입력값을 세션에 임시 저장합니다. 중도 이탈 방지용이며, 본인 세션만 수정 가능합니다.")
+    @Operation(summary = "검사 단계 임시 저장", description = "지정한 단계(1~9)의 입력값을 세션에 임시 저장합니다. 중도 이탈 방지용이며, 본인 세션만 수정 가능합니다. 9단계에서 수면 시간 1 이상이면 검사 완료 응답을 반환합니다.")
     public ApiResponse<Void> saveStep(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId,
             @Valid @RequestBody TestReqDTO.StepSaveReqDTO request
     ) {
-        testCommandService.saveStep(principal.getUserId(), sessionId, request);
-        return ApiResponse.onSuccess(TestSuccessCode.TEST_STEP_SAVED, null);
+        boolean completed = testCommandService.saveStep(principal.getUserId(), sessionId, request);
+        return ApiResponse.onSuccess(
+                completed ? TestSuccessCode.TEST_SESSION_COMPLETED : TestSuccessCode.TEST_STEP_SAVED,
+                null
+        );
     }
 }
