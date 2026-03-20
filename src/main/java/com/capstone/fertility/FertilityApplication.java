@@ -11,5 +11,4 @@ public class FertilityApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(FertilityApplication.class, args);
 	}
-
 }

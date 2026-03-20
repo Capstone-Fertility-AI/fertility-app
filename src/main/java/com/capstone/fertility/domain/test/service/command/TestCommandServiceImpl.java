@@ -36,7 +36,7 @@ public class TestCommandServiceImpl implements TestCommandService {
     }
 
     @Override
-    public void saveStep(Long userId, Long sessionId, TestReqDTO.StepSaveReqDTO request) {
+    public boolean saveStep(Long userId, Long sessionId, TestReqDTO.StepSaveReqDTO request) {
         TestSession session = testSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new TestException(TestErrorCode.SESSION_NOT_FOUND));
 
@@ -73,5 +73,6 @@ public class TestCommandServiceImpl implements TestCommandService {
         }
 
         testSessionRepository.save(session);
+        return completedWithSleep;
     }
 }
