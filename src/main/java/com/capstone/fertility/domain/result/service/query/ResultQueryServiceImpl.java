@@ -3,9 +3,9 @@ package com.capstone.fertility.domain.result.service.query;
 import com.capstone.fertility.domain.result.converter.ResultConverter;
 import com.capstone.fertility.domain.result.dto.res.ResultResDTO;
 import com.capstone.fertility.domain.result.entity.TestResult;
+import com.capstone.fertility.domain.result.exception.ResultException;
+import com.capstone.fertility.domain.result.exception.code.ResultErrorCode;
 import com.capstone.fertility.domain.result.repository.TestResultRepository;
-import com.capstone.fertility.global.apiPayLoad.code.GeneralErrorCode;
-import com.capstone.fertility.global.apiPayLoad.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,10 +59,10 @@ public class ResultQueryServiceImpl implements ResultQueryService {
 
     private void validateYearMonth(int year, int month) {
         if (year < MIN_YEAR || year > MAX_YEAR) {
-            throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
+            throw new ResultException(ResultErrorCode.INVALID_YEAR_FOR_HISTORY);
         }
         if (month < 1 || month > 12) {
-            throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
+            throw new ResultException(ResultErrorCode.INVALID_MONTH_FOR_HISTORY);
         }
     }
 }
