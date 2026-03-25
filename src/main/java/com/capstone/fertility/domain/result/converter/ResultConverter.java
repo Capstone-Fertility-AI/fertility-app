@@ -9,11 +9,11 @@ public final class ResultConverter {
 
     public static ResultResDTO.ResultHistoryItemDTO toHistoryItemDTO(TestResult entity) {
         return ResultResDTO.ResultHistoryItemDTO.builder()
-                .resultId(entity.getResultId())
-                .sessionId(entity.getSessionId())
-                .userId(entity.getUserId())
+                .resultId(entity.getId())
+                .sessionId(entity.getTestSession() != null ? entity.getTestSession().getId() : null)
+                .userId(entity.getUser() != null ? entity.getUser().getId() : null)
                 .aiScore(entity.getAiScore())
-                .riskLevel(entity.getRiskLevel())
+                .riskLevel(entity.getRiskLevel() != null ? entity.getRiskLevel().name() : null)
                 .top1Factor(entity.getTop1Factor())
                 .top2Factor(entity.getTop2Factor())
                 .top3Factor(entity.getTop3Factor())

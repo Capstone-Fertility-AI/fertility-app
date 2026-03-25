@@ -4,6 +4,7 @@ import com.capstone.fertility.domain.test.dto.req.TestReqDTO;
 import com.capstone.fertility.domain.test.dto.res.TestResDTO;
 import com.capstone.fertility.domain.test.exception.code.TestSuccessCode;
 import com.capstone.fertility.domain.test.service.command.TestCommandService;
+import com.capstone.fertility.domain.result.service.command.TestResultCommandService;
 import com.capstone.fertility.domain.test.service.query.TestQueryService;
 import com.capstone.fertility.global.apiPayLoad.ApiResponse;
 import com.capstone.fertility.global.security.CustomPrincipal;
@@ -20,13 +21,15 @@ public class TestController {
 
     private final TestCommandService testCommandService;
     private final TestQueryService testQueryService;
+    private final TestResultCommandService testResultCommandService;
 
-    @PostMapping
-    @Operation(summary = "검사 세션 생성", description = "인증된 사용자에 대해 검사 세션을 생성하고 sessionId를 반환합니다.")
-    public ApiResponse<TestResDTO.CreateSessionResDTO> createSession(
-            @AuthenticationPrincipal CustomPrincipal principal
+    @PostMapping("/start")
+    @Operation(summary = "검사 세션 시작", description = "0단계(성별 선택) 후 검사 세션을 생성하고 sessionId를 반환합니다.")
+    public ApiResponse<TestResDTO.CreateSessionResDTO> startSession(
+            @AuthenticationPrincipal CustomPrincipal principal,
+            @Valid @RequestBody TestReqDTO.Start request
     ) {
-        TestResDTO.CreateSessionResDTO result = testCommandService.createSession(principal.getUserId());
+        TestResDTO.CreateSessionResDTO result = testCommandService.start(principal.getUserId(), request);
         return ApiResponse.onSuccess(TestSuccessCode.TEST_SESSION_CREATED, result);
     }
 
@@ -40,17 +43,36 @@ public class TestController {
         return ApiResponse.onSuccess(TestSuccessCode.TEST_SESSION_FETCHED, result);
     }
 
-    @PostMapping("/{sessionId}/step")
-    @Operation(summary = "검사 단계 임시 저장", description = "지정한 단계(1~9)의 입력값을 세션에 임시 저장합니다. 중도 이탈 방지용이며, 본인 세션만 수정 가능합니다. 9단계에서 수면 시간 1 이상이면 검사 완료 응답을 반환합니다.")
-    public ApiResponse<Void> saveStep(
+    @PatchMapping("/{sessionId}/step/male")
+    @Operation(summary = "남성 임시 저장", description = "남성 전용 질문(step 1~11)을 세션에 임시 저장합니다. 세션 성별이 MALE인지 검증합니다.")
+    public ApiResponse<Void> saveMaleStep(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId,
-            @Valid @RequestBody TestReqDTO.StepSaveReqDTO request
+            @Valid @RequestBody TestReqDTO.MaleStepSave request
     ) {
-        boolean completed = testCommandService.saveStep(principal.getUserId(), sessionId, request);
-        return ApiResponse.onSuccess(
-                completed ? TestSuccessCode.TEST_SESSION_COMPLETED : TestSuccessCode.TEST_STEP_SAVED,
-                null
-        );
+        testCommandService.saveMaleStep(principal.getUserId(), sessionId, request);
+        return ApiResponse.onSuccess(TestSuccessCode.TEST_STEP_SAVED, null);
+    }
+
+    @PatchMapping("/{sessionId}/step/female")
+    @Operation(summary = "여성 임시 저장", description = "여성 전용 질문(step 1~9)을 세션에 임시 저장합니다. 세션 성별이 FEMALE인지 검증합니다.")
+    public ApiResponse<Void> saveFemaleStep(
+            @AuthenticationPrincipal CustomPrincipal principal,
+            @PathVariable Long sessionId,
+            @Valid @RequestBody TestReqDTO.FemaleStepSave request
+    ) {
+        testCommandService.saveFemaleStep(principal.getUserId(), sessionId, request);
+        return ApiResponse.onSuccess(TestSuccessCode.TEST_STEP_SAVED, null);
+    }
+
+    @PostMapping("/{sessionId}/submit")
+    @Operation(summary = "최종 제출 및 AI 예측 실행", description = "PSS 스트레스 10문항 제출 후 AI 예측을 실행하고 결과를 저장합니다. 본인 세션만 제출 가능하며, 이미 결과가 있으면 재제출 불가.")
+    public ApiResponse<TestResDTO.SubmitResult> submitResults(
+            @AuthenticationPrincipal CustomPrincipal principal,
+            @PathVariable Long sessionId,
+            @Valid @RequestBody TestReqDTO.Submit request
+    ) {
+        TestResDTO.SubmitResult result = testResultCommandService.submit(principal.getUserId(), sessionId, request);
+        return ApiResponse.onSuccess(TestSuccessCode.TEST_SUBMITTED, result);
     }
 }
