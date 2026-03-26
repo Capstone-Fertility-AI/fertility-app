@@ -6,15 +6,17 @@ import com.capstone.fertility.domain.test.dto.res.TestResDTO;
 public interface TestCommandService {
 
     /**
-     * 인증된 사용자에 대해 새 검사 세션을 생성하고 sessionId를 반환합니다.
+     * 0단계: 성별 선택 후 세션 생성
      */
-    TestResDTO.CreateSessionResDTO createSession(Long userId);
+    TestResDTO.CreateSessionResDTO start(Long userId, TestReqDTO.Start request);
 
     /**
-     * 검사 단계(1~9) 입력을 임시 저장합니다. 본인 세션만 수정 가능하며, IN_PROGRESS 상태일 때만 가능합니다.
-     * 9단계에서 수면 시간(sleepHours)을 1 이상 입력했을 때만 자동으로 COMPLETED 처리됩니다.
-     *
-     * @return 이번 요청으로 검사가 완료(COMPLETED) 처리되었으면 {@code true}
+     * 남성 전용 임시 저장(1~11)
      */
-    boolean saveStep(Long userId, Long sessionId, TestReqDTO.StepSaveReqDTO request);
+    void saveMaleStep(Long userId, Long sessionId, TestReqDTO.MaleStepSave request);
+
+    /**
+     * 여성 전용 임시 저장(1~9)
+     */
+    void saveFemaleStep(Long userId, Long sessionId, TestReqDTO.FemaleStepSave request);
 }

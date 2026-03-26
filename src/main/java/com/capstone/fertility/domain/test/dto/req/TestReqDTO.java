@@ -1,42 +1,83 @@
 package com.capstone.fertility.domain.test.dto.req;
 
+import com.capstone.fertility.domain.user.enums.Gender;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
+import jakarta.validation.constraints.Size;
 public class TestReqDTO {
 
     /**
-     * 검사 단계 임시 저장 요청.
-     * step(1~9)에 따라 해당 단계에서 입력한 필드만 담아 보냅니다.
+     * 0단계: 성별 선택(세션 생성용)
      */
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class StepSaveReqDTO {
+    public record Start(
+            @NotNull(message = "성별(gender)은 필수입니다.")
+            Gender gender
+    ) {}
 
-        @NotNull(message = "단계(step)는 필수입니다.")
-        @Min(value = 1, message = "단계는 1~9 사이여야 합니다.")
-        @Max(value = 9, message = "단계는 1~9 사이여야 합니다.")
-        private Integer step;
+    /**
+     * 남성 전용 임시 저장 DTO
+     * - step: 1~11
+     * - 공통: age, height, weight, chlam, gon, sleepHours
+     * - 남성 전용: numBioKid, sexFreq, hasSex12Mo, smokeStatus, drinkStatus, bingeStatus
+     */
+    public record MaleStepSave(
+            @NotNull(message = "단계(step)는 필수입니다.")
+            @Min(value = 1, message = "단계는 1 이상이어야 합니다.")
+            @Max(value = 11, message = "남성 단계는 1~11 사이여야 합니다.")
+            Integer step,
 
-        // --- 단계별 필드 (해당 단계에서만 채움, 나머지는 null) ---
-        private Integer age;           // 1
-        private Double height;         // 2
-        private Double weight;         // 3
-        private Integer menarcheAge;   // 4
-        private Integer parity;        // 5
-        private Integer pcos;         // 6
-        private Integer endo;
-        private Integer uf;
-        private Integer pid;
-        private Integer chlam;
-        private Integer gon;
-        private Integer smokeLevel;    // 7
-        private Integer binge12;       // 8
-        private Integer sleepHours;    // 9
-    }
+            Integer age,
+            Double height,
+            Double weight,
+            Integer chlam,
+            Integer gon,
+            Integer sleepHours,
+
+            Integer numBioKid,
+            Integer sexFreq,
+            Boolean hasSex12Mo,
+            String smokeStatus,
+            String drinkStatus,
+            String bingeStatus
+    ) {}
+
+    /**
+     * 여성 전용 임시 저장 DTO
+     * - step: 1~9
+     * - 공통: age, height, weight, chlam, gon, sleepHours
+     * - 여성 전용: menarcheAge, parity, pcos, endo, uf, pid, smokeLevel, binge12
+     */
+    public record FemaleStepSave(
+            @NotNull(message = "단계(step)는 필수입니다.")
+            @Min(value = 1, message = "단계는 1 이상이어야 합니다.")
+            @Max(value = 9, message = "여성 단계는 1~9 사이여야 합니다.")
+            Integer step,
+
+            Integer age,
+            Double height,
+            Double weight,
+            Integer chlam,
+            Integer gon,
+            Integer sleepHours,
+
+            Integer menarcheAge,
+            Integer parity,
+            Integer pcos,
+            Integer endo,
+            Integer uf,
+            Integer pid,
+            Integer smokeLevel,
+            Integer binge12
+    ) {}
+
+    /**
+     * 최종 제출 DTO
+     * - PSS 10문항 답변만 받음
+     */
+    public record Submit(
+            @NotNull(message = "PSS 10문항 답변이 필요합니다.")
+            @Size(min = 10, max = 10, message = "PSS 문항은 정확히 10개여야 합니다.")
+            java.util.List<Integer> pssAnswers
+    ) {}
 }

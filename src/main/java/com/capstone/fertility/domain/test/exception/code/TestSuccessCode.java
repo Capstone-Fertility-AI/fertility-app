@@ -12,8 +12,7 @@ public enum TestSuccessCode implements BaseSuccessCode {
     TEST_SESSION_CREATED(HttpStatus.CREATED, "TEST200_1", "검사 세션이 생성되었습니다."),
     TEST_STEP_SAVED(HttpStatus.OK, "TEST200_2", "검사 단계가 임시 저장되었습니다."),
     TEST_SESSION_FETCHED(HttpStatus.OK, "TEST200_3", "검사 세션이 조회되었습니다."),
-    /** 9단계 + 수면 시간 1 이상 저장으로 검사가 COMPLETED 된 경우 */
-    TEST_SESSION_COMPLETED(HttpStatus.OK, "TEST200_4", "완료되었습니다.");
+    TEST_SUBMITTED(HttpStatus.CREATED, "TEST201_1", "검사가 제출되었고 AI 예측 결과가 생성되었습니다.");
 
     private final HttpStatus status;
     private final String code;

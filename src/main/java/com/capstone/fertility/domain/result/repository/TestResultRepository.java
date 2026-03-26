@@ -7,12 +7,21 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TestResultRepository extends JpaRepository<TestResult, Long> {
 
+    Optional<TestResult> findByTestSession_Id(Long sessionId);
+
+    /**
+     * 히스토리 조회(연/월 단위).
+     * - userId 기준
+     * - createdAt 기간 조건
+     */
     @Query("""
-            SELECT t FROM TestResult t
-            WHERE t.userId = :userId
+            SELECT t
+            FROM TestResult t
+            WHERE t.user.id = :userId
               AND t.createdAt >= :startInclusive
               AND t.createdAt < :endExclusive
             ORDER BY t.createdAt DESC

@@ -1,55 +1,55 @@
 package com.capstone.fertility.domain.result.entity;
 
+import com.capstone.fertility.domain.result.enums.RiskLevel;
+import com.capstone.fertility.domain.test.entity.TestSession;
+import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
-/**
- * DB 테이블 test_results (스펙: Test_Results) 매핑.
- */
 @Entity
 @Table(name = "test_results")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class TestResult {
+public class TestResult extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "result_id")
-    private Long resultId;
+    private Long id;
 
-    @Column(name = "session_id", nullable = false)
-    private Long sessionId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = false, unique = true)
+    private TestSession testSession;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(name = "ai_score", nullable = false)
+    @Column(name = "ai_score")
     private Integer aiScore;
 
-    @Column(name = "risk_level", nullable = false, length = 20)
-    private String riskLevel;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "risk_level", length = 20)
+    private RiskLevel riskLevel;
 
-    @Column(name = "top1_factor", nullable = false, length = 100)
+    @Column(name = "risk_probability")
+    private Double riskProbability;
+
+    @Column(name = "top1_factor")
     private String top1Factor;
 
-    @Column(name = "top2_factor", length = 100)
+    @Column(name = "top2_factor")
     private String top2Factor;
 
-    @Column(name = "top3_factor", length = 100)
+    @Column(name = "top3_factor")
     private String top3Factor;
 
-    @Lob
-    @Column(name = "llm_advice")
+    @Column(name = "llm_advice", columnDefinition = "TEXT")
     private String llmAdvice;
 
-    @Lob
-    @Column(name = "medical_evidence")
+    @Column(name = "medical_evidence", columnDefinition = "TEXT")
     private String medicalEvidence;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
 }

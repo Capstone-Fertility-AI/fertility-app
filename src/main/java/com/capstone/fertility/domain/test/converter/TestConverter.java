@@ -3,6 +3,7 @@ package com.capstone.fertility.domain.test.converter;
 import com.capstone.fertility.domain.test.dto.res.TestResDTO;
 import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.test.enums.TestSessionStatus;
+import com.capstone.fertility.domain.user.enums.Gender;
 import com.capstone.fertility.domain.user.entity.User;
 
 public class TestConverter {
@@ -10,11 +11,19 @@ public class TestConverter {
     /**
      * 사용자와 연결된 새 검사 세션 엔티티 생성 (초기 상태 IN_PROGRESS, 입력 필드는 모두 null)
      */
-    public static TestSession toTestSession(User user) {
+    public static TestSession toTestSession(User user, Gender gender) {
         return TestSession.builder()
                 .user(user)
+                .gender(gender)
                 .status(TestSessionStatus.IN_PROGRESS)
                 .build();
+    }
+
+    /**
+     * IDE 린터가 toTestSession(User, Gender)를 시그니처로 인식하지 못할 때를 대비한 명시적 팩토리 메서드.
+     */
+    public static TestSession toTestSessionWithGender(User user, Gender gender) {
+        return toTestSession(user, gender);
     }
 
     /**
@@ -34,6 +43,7 @@ public class TestConverter {
                 .sessionId(session.getId())
                 .status(session.getStatus())
                 .currentStep(session.getCurrentStep())
+                .gender(session.getGender())
                 .age(session.getAge())
                 .height(session.getHeight())
                 .weight(session.getWeight())
@@ -48,6 +58,13 @@ public class TestConverter {
                 .smokeLevel(session.getSmokeLevel())
                 .binge12(session.getBinge12())
                 .sleepHours(session.getSleepHours())
+                .numBioKid(session.getNumBioKid())
+                .sexFreq(session.getSexFreq())
+                .hasSex12Mo(session.getHasSex12Mo())
+                .smokeStatus(session.getSmokeStatus())
+                .drinkStatus(session.getDrinkStatus())
+                .bingeStatus(session.getBingeStatus())
                 .build();
     }
 }
+

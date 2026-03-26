@@ -82,3 +82,36 @@ PR 내용:
 브랜치 이름이나 커밋 메시지에 이슈 번호를 적으면 추적이 쉽습니다. (예: feat: 설문조사 UI 구현 (#1))
 
 GitHub Projects(칸반 보드)를 활용해 To Do, In Progress, Done으로 일감을 옮겨가며 프로젝트 진행 상황을 눈으로 확인합니다.
+
+## AI 서버 연동 운영 가이드
+
+Spring Boot는 별도 FastAPI AI 서버를 호출합니다.
+
+- 남성 예측: `POST {AI_BASE_URL}/api/predict/male`
+- 여성 예측: `POST {AI_BASE_URL}/api/predict/female`
+
+### 필수 환경변수
+
+- `AI_BASE_URL` (예: `http://127.0.0.1:8000`)
+- `AI_CONNECT_TIMEOUT_MS` (기본값: `2000`)
+- `AI_READ_TIMEOUT_MS` (기본값: `5000`)
+- `AI_PREDICTION_ENABLED` (`true/false`, 기본값: `true`)
+- `AI_HEALTH_PATH` (기본값: `/health`)
+
+### 설정 키
+
+- `ai.base-url`
+- `ai.connect-timeout-ms`
+- `ai.read-timeout-ms`
+- `ai.health-path`
+- `ai.prediction.enabled`
+- `ai.prediction.path.male`
+- `ai.prediction.path.female`
+
+### 장애 시 점검 포인트
+
+1. FastAPI 프로세스 기동 여부 (`uvicorn` 로그 확인)
+2. 네트워크 경로/방화벽/보안그룹에서 `AI_BASE_URL` 접근 가능 여부
+3. 타임아웃 설정 (`AI_CONNECT_TIMEOUT_MS`, `AI_READ_TIMEOUT_MS`)이 과도하게 낮지 않은지
+4. 엔드포인트 경로 불일치 여부 (`/api/predict/male`, `/api/predict/female`)
+5. Actuator health 확인: `/actuator/health` 내 `aiServer` 상태
