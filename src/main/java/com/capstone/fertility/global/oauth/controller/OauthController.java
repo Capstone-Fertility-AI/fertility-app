@@ -5,12 +5,8 @@ package com.capstone.fertility.global.oauth.controller;
 카카오 인증서버가 돌려준 code 받고 JWT 발급해주기.
  */
 
-import com.capstone.fertility.domain.user.converter.UserConverter;
-import com.capstone.fertility.domain.user.dto.res.UserResDTO;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.enums.Role;
-import com.capstone.fertility.global.apiPayLoad.ApiResponse;
-import com.capstone.fertility.global.apiPayLoad.code.OauthSuccessCode;
 import com.capstone.fertility.global.auth.service.RefreshTokenProvider;
 import com.capstone.fertility.global.oauth.model.KakaoUserInfo;
 import com.capstone.fertility.global.oauth.service.KakaoOauthService;
@@ -18,9 +14,12 @@ import com.capstone.fertility.global.oauth.service.OauthUserService;
 import com.capstone.fertility.global.security.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,6 +30,9 @@ public class OauthController {
     private final OauthUserService oauthUserService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenProvider refreshTokenProvider;
+
+    @Value("${oauth.kakao.frontend-callback-url:http://localhost:5173/oauth/kakao/callback}")
+    private String frontendCallbackUrl;
 
     /**
      * 1) 카카오 로그인 시작
@@ -48,9 +50,10 @@ public class OauthController {
      *    예) GET /oauth/kakao/callback?code=xxxx
      */
     @GetMapping("/kakao/callback")
-    public ApiResponse<UserResDTO.LoginResDTO> kakaoCallback(
-            @RequestParam("code") String code
-    ) {
+    public void kakaoCallback(
+            @RequestParam("code") String code,
+            HttpServletResponse response
+    ) throws IOException {
         // 1. 카카오 사용자 정보 조회
         KakaoUserInfo kakaoUser = kakaoOauthService.fetchKakaoUser(code);
 
@@ -64,9 +67,18 @@ public class OauthController {
         String refreshToken =
                 refreshTokenProvider.createAndSave(user.getId());
 
-        return ApiResponse.onSuccess(
-                OauthSuccessCode.KAKAO_LOGIN_SUCCESS,
-                UserConverter.toLoginResDTO(accessToken, refreshToken, user)
-        );
+        // 4. 프론트 콜백으로 리다이렉트 (토큰·유저 정보는 쿼리로 전달)
+        String nickname = user.getNickname() != null ? user.getNickname() : "";
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(frontendCallbackUrl)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .queryParam("userId", user.getId())
+                .queryParam("nickname", nickname)
+                .build()
+                .encode(StandardCharsets.UTF_8)
+                .toUriString();
+
+        response.sendRedirect(redirectUrl);
     }
 }
