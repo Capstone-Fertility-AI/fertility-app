@@ -7,6 +7,7 @@ import com.capstone.fertility.domain.test.service.command.TestCommandService;
 import com.capstone.fertility.domain.result.service.command.TestResultCommandService;
 import com.capstone.fertility.domain.test.service.query.TestQueryService;
 import com.capstone.fertility.global.apiPayLoad.ApiResponse;
+import com.capstone.fertility.global.apiPayLoad.code.GeneralSuccessCode;
 import com.capstone.fertility.global.security.CustomPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -41,6 +42,16 @@ public class TestController {
     ) {
         TestResDTO.SessionDetailDTO result = testQueryService.getSession(principal.getUserId(), sessionId);
         return ApiResponse.onSuccess(TestSuccessCode.TEST_SESSION_FETCHED, result);
+    }
+
+    @GetMapping("/{sessionId}/interim-report")
+    @Operation(summary = "중간 보고서 조회", description = "사용자 입력 값(수면/키/몸무게/나이/성별)을 기반으로 평균 대비 차이 / BMI등급 차이 / AI 점수, 등급, Top 3 출력")
+    public ApiResponse<TestResDTO.InterimReportDTO> getInterimReport(
+            @AuthenticationPrincipal CustomPrincipal principal,
+            @PathVariable Long sessionId
+    ) {
+        TestResDTO.InterimReportDTO result = testQueryService.getInterimReport(principal.getUserId(), sessionId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
     @PatchMapping("/{sessionId}/step/male")
