@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -92,6 +93,7 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
         Gender sessionGender = session.getGender();
 
         // AI 서버가 아직 준비되지 않은 로컬/개발 환경에서는 더미 결과로 정상 응답합니다.
+        // 위험 요인 없음 상태(top_factors=[])와 동일한 형태로 내려보내, 프론트가 일관된 분기 처리할 수 있게 합니다.
         if (!aiPredictionEnabled) {
             int dummyScore = 0;
             RiskLevel dummyRisk = RiskLevel.determineLevel(dummyScore);
@@ -100,9 +102,7 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
                     .user(session.getUser())
                     .aiScore(dummyScore)
                     .riskLevel(dummyRisk)
-                    .top1Factor(null)
-                    .top2Factor(null)
-                    .top3Factor(null)
+                    .topFactors(Collections.emptyList())
                     .build();
 
             TestResult saved = testResultRepository.save(dummy);
@@ -110,9 +110,7 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
                     .resultId(saved.getId())
                     .aiScore(saved.getAiScore())
                     .riskLevel(saved.getRiskLevel())
-                    .top1Factor(saved.getTop1Factor())
-                    .top2Factor(saved.getTop2Factor())
-                    .top3Factor(saved.getTop3Factor())
+                    .topFactors(saved.getTopFactors())
                     .build();
         }
 
@@ -158,10 +156,12 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
         AiPredictionResDTO.ResultPayload aiResult = aiWrapper.result();
 
         int aiScore = aiResult.resolvedAiScore();
-        List<String> factors = aiResult.resolvedTopFactors();
-        String top1 = factors.size() > 0 ? factors.get(0) : null;
-        String top2 = factors.size() > 1 ? factors.get(1) : null;
-        String top3 = factors.size() > 2 ? factors.get(2) : null;
+        // AI 서버(SHAP)가 산출한 위험 요인 전체를 그대로 보존한다.
+        // 빈 문자열/공백/null은 표시 품질을 위해 사전에 걸러낸다.
+        List<String> factors = aiResult.resolvedTopFactors().stream()
+                .filter(f -> f != null && !f.isBlank())
+                .map(String::trim)
+                .toList();
 
         RiskLevel riskLevel = RiskLevel.determineLevel(aiScore);
 
@@ -171,9 +171,7 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
                 .aiScore(aiScore)
                 .riskProbability(aiResult.riskProbability())
                 .riskLevel(riskLevel)
-                .top1Factor(top1)
-                .top2Factor(top2)
-                .top3Factor(top3)
+                .topFactors(factors)
                 .build();
         TestResult saved = testResultRepository.save(result);
 
@@ -182,9 +180,7 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
                 .aiScore(saved.getAiScore())
                 .riskProbability(saved.getRiskProbability())
                 .riskLevel(saved.getRiskLevel())
-                .top1Factor(saved.getTop1Factor())
-                .top2Factor(saved.getTop2Factor())
-                .top3Factor(saved.getTop3Factor())
+                .topFactors(saved.getTopFactors())
                 .build();
     }
 

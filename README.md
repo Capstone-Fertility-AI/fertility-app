@@ -115,3 +115,66 @@ Spring Boot는 별도 FastAPI AI 서버를 호출합니다.
 3. 타임아웃 설정 (`AI_CONNECT_TIMEOUT_MS`, `AI_READ_TIMEOUT_MS`)이 과도하게 낮지 않은지
 4. 엔드포인트 경로 불일치 여부 (`/api/predict/male`, `/api/predict/female`)
 5. Actuator health 확인: `/actuator/health` 내 `aiServer` 상태
+
+## 위험 요인(top_factors) 정책 변경 안내 (2026-04)
+
+기존 `top1_factor / top2_factor / top3_factor` 3개 컬럼 구조에서, **AI(SHAP)가 산출한 활성 위험요인 전체를 단일 컬럼(`top_factors`)에 JSON 배열로 보관**하는 방식으로 전환되었습니다.
+
+- Entity: `TestResult.topFactors : List<String>` (JPA `StringListJsonConverter`로 TEXT 컬럼에 JSON 직렬화)
+- 응답 DTO: `SubmitResult.topFactors`, `ResultHistoryItemDTO.topFactors` (가변 길이 배열, 0~N개)
+- LLM 프롬프트: `factors` 배열을 동적으로 1~N번까지 반복 렌더링
+- 빈 배열(`[]`) = "위험 요인 없음" 상태로 간주 (프론트에서 빈 상태 문구 출력)
+
+### 새 AI 응답 스펙 (2026-04 이후)
+
+```json
+{
+  "status": "success",
+  "result": {
+    "gender": "female",
+    "score": 75,
+    "risk_probability": 25.0,
+    "bmi": 24.5,
+    "top_factors": ["흡연", "수면 부족", "BMI 과다"]
+  }
+}
+```
+
+- `top_factors`는 **활성 위험요인 전체 목록**(중요도 순). Top 3 고정이 아니며 길이 제한 없음.
+- 정상/긍정 요인은 AI 서버에서 사전 필터링되어 포함되지 않음.
+- 다음 필드는 더 이상 사용하지 않음 (응답에 포함되어 들어와도 Spring은 `@JsonIgnoreProperties(ignoreUnknown = true)`로 무시):
+  - `top1_factor`, `top2_factor`, `top3_factor`
+  - `mission_candidates`
+- 정상/주의/위험 등급(`riskLevel`) 매핑은 Spring(`RiskLevel.determineLevel`)에서 score 기반으로 수행. AI 서버는 score / risk_probability / top_factors 계산만 담당.
+
+### prod DB 마이그레이션 SQL (필수)
+
+`spring.jpa.hibernate.ddl-auto: validate` 운영 환경에서는 컬럼이 자동 추가되지 않으므로 아래 SQL을 수동 실행해야 부팅됩니다.
+
+```sql
+-- 1) 신규 컬럼 추가 (TEXT, JSON 배열 보관)
+ALTER TABLE test_results ADD COLUMN IF NOT EXISTS top_factors TEXT;
+
+-- 2) (선택) 기존 데이터 보존이 필요하면 한 번에 마이그레이션
+UPDATE test_results
+   SET top_factors = to_json(
+        ARRAY(
+          SELECT v FROM (VALUES (top1_factor), (top2_factor), (top3_factor)) AS t(v)
+          WHERE v IS NOT NULL AND v <> ''
+        )
+       )::text
+ WHERE top_factors IS NULL;
+
+-- 3) (선택, 충분히 검증 후) 레거시 컬럼 제거
+-- ALTER TABLE test_results DROP COLUMN top1_factor;
+-- ALTER TABLE test_results DROP COLUMN top2_factor;
+-- ALTER TABLE test_results DROP COLUMN top3_factor;
+```
+
+local 환경(`ddl-auto: update`)은 부팅 시 `top_factors` 컬럼이 자동 추가됩니다. 레거시 컬럼은 자동 삭제되지 않으므로 수동 정리하거나 그대로 두어도 됩니다.
+
+### AI 서버(FastAPI) 변경 사항
+
+- 응답 `result.top_factors`는 **고정 길이 3이 아니라 가변 길이 배열**로 내려주세요(중요도 순서 유지).
+- 더 이상 빈 자리를 "양호한 ~ 유지 중" 같은 문구로 패딩하지 않습니다.
+- 참고: `docs/fastapi_top_factors_padding.py` 의 `sanitize_risk_factors()` (None/공백 정리만 수행).

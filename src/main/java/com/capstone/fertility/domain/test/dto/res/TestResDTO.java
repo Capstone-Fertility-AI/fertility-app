@@ -3,7 +3,10 @@ package com.capstone.fertility.domain.test.dto.res;
 import com.capstone.fertility.domain.result.enums.RiskLevel;
 import com.capstone.fertility.domain.test.enums.TestSessionStatus;
 import com.capstone.fertility.domain.user.enums.Gender;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
+
+import java.util.List;
 
 public class TestResDTO {
 
@@ -14,17 +17,26 @@ public class TestResDTO {
     public record CreateSessionResDTO(Long sessionId) {}
 
     /**
-     * 최종 제출 및 AI 예측 결과 응답 DTO
+     * 최종 제출 및 AI 예측 결과 응답 DTO.
+     * <p>
+     * AI 서버가 산출한 위험 요인 전체 리스트를 그대로 내려준다.
+     * (이전 스펙의 top1/2/3, mission_candidates 필드는 더 이상 사용하지 않음)
      */
     @Builder
     public record SubmitResult(
-            Long resultId,
+            @Schema(description = "결과 PK", example = "12") Long resultId,
+            @Schema(description = "AI 건강 점수(0~100). AI 서버가 계산한 값을 그대로 보관.", example = "78")
             Integer aiScore,
+            @Schema(description = "위험 확률(%)", example = "22.5")
             Double riskProbability,
+            @Schema(description = "Spring에서 score 기준으로 매핑한 위험 등급. 80 이상 SAFE, 50 이상 WARNING, 그 외 DANGER.")
             RiskLevel riskLevel,
-            String top1Factor,
-            String top2Factor,
-            String top3Factor
+            @Schema(
+                    description = "활성 위험요인 전체 목록(중요도 순). Top 3 고정이 아니며 길이는 0~N. " +
+                            "비어있으면 위험 요인 없음 상태로 간주한다.",
+                    example = "[\"흡연\", \"수면 부족\", \"BMI 과다\"]"
+            )
+            List<String> topFactors
     ) {}
 
     /**

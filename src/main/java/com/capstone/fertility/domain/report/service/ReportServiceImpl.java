@@ -17,10 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -68,13 +68,14 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private String buildUserPrompt(User user, TestSession session, TestResult result) {
-        List<String> factors = Stream.of(
-                        result.getTop1Factor(),
-                        result.getTop2Factor(),
-                        result.getTop3Factor()
-                )
-                .map(f -> f != null ? f : "해당 없음")
-                .toList();
+        // AI(SHAP)가 산출한 위험 요인을 모두 그대로 LLM에 전달한다.
+        // 빈/공백 문자열은 사전에 걸러내고, factorCount를 함께 전달해 프롬프트가 동적으로 반복 렌더링하도록 한다.
+        List<String> factors = result.getTopFactors() != null
+                ? result.getTopFactors().stream()
+                        .filter(f -> f != null && !f.isBlank())
+                        .map(String::trim)
+                        .toList()
+                : Collections.emptyList();
 
         String sleepDescription = describeSleep(session.getSleepHours());
         String stressDescription = describeStress(session.getStressLevel(), session.getStressScore());
@@ -87,7 +88,8 @@ public class ReportServiceImpl implements ReportService {
         payload.put("riskLevel", result.getRiskLevel() != null ? result.getRiskLevel().name() : "DANGER");
         payload.put("sleep", sleepDescription);
         payload.put("stress", stressDescription);
-        payload.put("top3_factors", factors);
+        payload.put("factors", factors);
+        payload.put("factorCount", factors.size());
 
         try {
             return objectMapper.writeValueAsString(payload);
