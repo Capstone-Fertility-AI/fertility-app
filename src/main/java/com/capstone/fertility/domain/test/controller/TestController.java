@@ -45,7 +45,7 @@ public class TestController {
     }
 
     @GetMapping("/{sessionId}/interim-report")
-    @Operation(summary = "중간 보고서 조회", description = "사용자 입력 값(수면/키/몸무게/나이/성별)을 기반으로 평균 대비 차이 / BMI등급 차이 / AI 점수·등급·활성 위험요인 전체 목록(topFactors, 가변 길이) 출력")
+    @Operation(summary = "중간 보고서 조회", description = "사용자 입력 값(수면/키/몸무게/나이/성별)을 기반으로 평균 대비 차이 / BMI등급 차이 / AI 점수, 등급, Top 3 출력")
     public ApiResponse<TestResDTO.InterimReportDTO> getInterimReport(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId

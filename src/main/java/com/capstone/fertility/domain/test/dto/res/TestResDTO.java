@@ -80,7 +80,7 @@ public class TestResDTO {
      *   <li>평균 BMI·대비 %: 만 20~69세, 10년 단위(20~29 … 60~69) 표와 매칭. 그 밖 연령은 null.</li>
      *   <li>수면: 만 20~59세는 10년 단위(20대~50대), 만 60세 이상은 동일 기준·라벨 "60대 이상".</li>
      *   <li>평균 BMI가 적용되는 연령대 문자열(예: "20~29")은 응답에 넣지 않음 — 클라이언트가 age로 표기.</li>
-     *   <li>최종 제출 후 생성된 {@link SubmitResult}와 동일 필드(resultId ~ topFactors)를 포함. 미제출 시 null.</li>
+     *   <li>최종 제출 후 생성된 {@link SubmitResult}와 동일 필드(resultId ~ top3Factor)를 포함. 미제출 시 null.</li>
      * </ul>
      */
     @Builder
@@ -109,7 +109,8 @@ public class TestResDTO {
             Integer aiScore,
             Double riskProbability,
             RiskLevel riskLevel,
-            /** 활성 위험요인 전체 목록(중요도 순). Top 3 고정이 아니며 길이는 0~N. 미제출 시 null. */
-            List<String> topFactors
+            String top1Factor,
+            String top2Factor,
+            String top3Factor
     ) {}
 }
