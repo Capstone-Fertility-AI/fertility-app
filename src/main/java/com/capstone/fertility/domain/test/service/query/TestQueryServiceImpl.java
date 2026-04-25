@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -163,9 +164,7 @@ public class TestQueryServiceImpl implements TestQueryService {
         Integer aiScore = null;
         Double riskProbability = null;
         RiskLevel riskLevel = null;
-        String top1Factor = null;
-        String top2Factor = null;
-        String top3Factor = null;
+        List<String> topFactors = null;
 
         Optional<TestResult> savedResult = testResultRepository.findByTestSession_Id(sessionId);
         if (savedResult.isPresent()) {
@@ -174,9 +173,7 @@ public class TestQueryServiceImpl implements TestQueryService {
             aiScore = tr.getAiScore();
             riskProbability = tr.getRiskProbability();
             riskLevel = tr.getRiskLevel();
-            top1Factor = tr.getTop1Factor();
-            top2Factor = tr.getTop2Factor();
-            top3Factor = tr.getTop3Factor();
+            topFactors = tr.getTopFactors();
         }
 
         return TestResDTO.InterimReportDTO.builder()
@@ -196,9 +193,7 @@ public class TestQueryServiceImpl implements TestQueryService {
                 .aiScore(aiScore)
                 .riskProbability(riskProbability)
                 .riskLevel(riskLevel)
-                .top1Factor(top1Factor)
-                .top2Factor(top2Factor)
-                .top3Factor(top3Factor)
+                .topFactors(topFactors)
                 .build();
     }
 
