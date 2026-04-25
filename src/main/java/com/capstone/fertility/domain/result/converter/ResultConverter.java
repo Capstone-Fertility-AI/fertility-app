@@ -3,6 +3,8 @@ package com.capstone.fertility.domain.result.converter;
 import com.capstone.fertility.domain.result.dto.res.ResultResDTO;
 import com.capstone.fertility.domain.result.entity.TestResult;
 
+import java.util.Collections;
+
 public final class ResultConverter {
 
     private ResultConverter() {}
@@ -14,9 +16,9 @@ public final class ResultConverter {
                 .userId(entity.getUser() != null ? entity.getUser().getId() : null)
                 .aiScore(entity.getAiScore())
                 .riskLevel(entity.getRiskLevel() != null ? entity.getRiskLevel().name() : null)
-                .top1Factor(entity.getTop1Factor())
-                .top2Factor(entity.getTop2Factor())
-                .top3Factor(entity.getTop3Factor())
+                .topFactors(entity.getTopFactors() != null
+                        ? entity.getTopFactors()
+                        : Collections.emptyList())
                 .llmAdvice(entity.getLlmAdvice())
                 .medicalEvidence(entity.getMedicalEvidence())
                 .createdAt(entity.getCreatedAt())

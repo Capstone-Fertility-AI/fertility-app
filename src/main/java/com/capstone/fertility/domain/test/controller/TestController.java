@@ -77,7 +77,13 @@ public class TestController {
     }
 
     @PostMapping("/{sessionId}/submit")
-    @Operation(summary = "최종 제출 및 AI 예측 실행", description = "PSS 스트레스 10문항 제출 후 AI 예측을 실행하고 결과를 저장합니다. 본인 세션만 제출 가능하며, 이미 결과가 있으면 재제출 불가.")
+    @Operation(
+            summary = "최종 제출 및 AI 예측 실행",
+            description = "PSS 스트레스 10문항 제출 후 AI 예측을 실행하고 결과를 저장합니다. " +
+                    "본인 세션만 제출 가능하며, 이미 결과가 있으면 재제출 불가. " +
+                    "응답의 topFactors는 활성 위험요인 전체 목록(가변 길이, 0~N개)이며 " +
+                    "Top 3 고정이 아닙니다. (구 스펙의 top1/2/3, mission_candidates 필드는 제거됨)"
+    )
     public ApiResponse<TestResDTO.SubmitResult> submitResults(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId,

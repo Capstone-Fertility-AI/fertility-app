@@ -1,5 +1,6 @@
 package com.capstone.fertility.domain.result.dto.res;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -14,9 +15,12 @@ public class ResultResDTO {
             Long userId,
             Integer aiScore,
             String riskLevel,
-            String top1Factor,
-            String top2Factor,
-            String top3Factor,
+            @Schema(
+                    description = "활성 위험요인 전체 목록(중요도 순). Top 3 고정이 아니며 길이는 0~N. " +
+                            "비어있으면 위험 요인 없음 상태로 간주한다.",
+                    example = "[\"흡연\", \"수면 부족\"]"
+            )
+            List<String> topFactors,
             String llmAdvice,
             String medicalEvidence,
             LocalDateTime createdAt
