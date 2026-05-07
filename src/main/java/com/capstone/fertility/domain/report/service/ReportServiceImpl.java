@@ -4,6 +4,7 @@ import com.capstone.fertility.domain.report.dto.res.ReportResDTO;
 import com.capstone.fertility.domain.report.exception.ReportException;
 import com.capstone.fertility.domain.report.exception.code.ReportErrorCode;
 import com.capstone.fertility.domain.result.entity.TestResult;
+import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.result.repository.TestResultRepository;
 import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.user.entity.User;
@@ -77,7 +78,7 @@ public class ReportServiceImpl implements ReportService {
                         .toList()
                 : Collections.emptyList();
 
-        String sleepDescription = describeSleep(session.getSleepHours());
+        String sleepDescription = describeSleep(session.getSleepHours(), session.getSleepMinutes());
         String stressDescription = describeStress(session.getStressLevel(), session.getStressScore());
 
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -98,11 +99,19 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private String describeSleep(Integer sleepHours) {
-        if (sleepHours == null) return "정보 없음";
-        if (sleepHours >= 7) return "충분한 수면 (" + sleepHours + "시간)";
-        if (sleepHours >= 5) return "다소 부족한 수면 (" + sleepHours + "시간)";
-        return "수면 부족 (" + sleepHours + "시간)";
+    private String describeSleep(Integer sleepHours, Integer sleepMinutes) {
+        if (sleepHours == null || sleepMinutes == null) {
+            return "정보 없음";
+        }
+        double totalHours = SleepInputSupport.totalSleepHoursDecimal(sleepHours, sleepMinutes);
+        String label = SleepInputSupport.formatKorean(sleepHours, sleepMinutes);
+        if (totalHours >= 7.0) {
+            return "충분한 수면 (" + label + ")";
+        }
+        if (totalHours >= 5.0) {
+            return "다소 부족한 수면 (" + label + ")";
+        }
+        return "수면 부족 (" + label + ")";
     }
 
     private String describeStress(String stressLevel, Integer stressScore) {

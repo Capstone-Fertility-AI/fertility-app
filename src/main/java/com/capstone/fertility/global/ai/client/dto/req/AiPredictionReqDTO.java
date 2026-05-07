@@ -8,7 +8,7 @@ import lombok.Builder;
  * <p>
  * JSON 직렬화 필드명: age, height, weight, menarche_age, parity, pcos, endo, uf, pid, chlam, gon,
  * SMOKE30, DRINK12, BINGE12, num_bio_kid, sex_freq, has_sex_12mo, sleep_hours, stress_score, stress_level
- * (Python에서 sleep/stress 미사용 시 무시 가능)
+ * ({@code sleep_hours}: 시·분을 합산한 하루 수면 시간(시간 단위 소수). Python에서 sleep/stress 미사용 시 무시 가능)
  */
 public class AiPredictionReqDTO {
 
@@ -68,7 +68,7 @@ public class AiPredictionReqDTO {
             Integer hasSex12Mo,
 
             @JsonProperty("sleep_hours")
-            Integer sleepHours,
+            Double sleepHours,
 
             @JsonProperty("stress_score")
             Integer stressScore,
