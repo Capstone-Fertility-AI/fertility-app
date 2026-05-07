@@ -88,6 +88,13 @@ public class User extends BaseEntity {
     }
 
     /**
+     * 마지막 미션 완료 시각 갱신
+     */
+    public void updateLastMissionDate() {
+        this.lastMissionDate = LocalDateTime.now();
+    }
+
+    /**
      * 회원가입 시 추가 정보 입력 (온보딩)
      */
     public void updateProfile(Gender gender, Integer birthYear, boolean isTermsAgreed) {

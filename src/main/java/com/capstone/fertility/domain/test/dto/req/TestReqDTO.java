@@ -18,7 +18,7 @@ public class TestReqDTO {
     /**
      * 남성 전용 임시 저장 DTO
      * - step: 1~11
-     * - 공통: age, height, weight, chlam, gon, sleepHours
+     * - 공통: age, height, weight, chlam, gon, sleepHours, sleepMinutes (수면 입력 시 둘 다 필수·합계 ≤ 24h)
      * - 남성 전용: numBioKid, sexFreq, hasSex12Mo, smokeStatus, drinkStatus, bingeStatus
      */
     public record MaleStepSave(
@@ -33,6 +33,7 @@ public class TestReqDTO {
             Integer chlam,
             Integer gon,
             Integer sleepHours,
+            Integer sleepMinutes,
 
             Integer numBioKid,
             Integer sexFreq,
@@ -45,7 +46,7 @@ public class TestReqDTO {
     /**
      * 여성 전용 임시 저장 DTO
      * - step: 1~9
-     * - 공통: age, height, weight, chlam, gon, sleepHours
+     * - 공통: age, height, weight, chlam, gon, sleepHours, sleepMinutes (수면 입력 시 둘 다 필수·합계 ≤ 24h)
      * - 여성 전용: menarcheAge, parity, pcos, endo, uf, pid, smokeLevel, binge12
      */
     public record FemaleStepSave(
@@ -60,6 +61,7 @@ public class TestReqDTO {
             Integer chlam,
             Integer gon,
             Integer sleepHours,
+            Integer sleepMinutes,
 
             Integer menarcheAge,
             Integer parity,

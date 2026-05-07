@@ -45,7 +45,10 @@ public class TestController {
     }
 
     @GetMapping("/{sessionId}/interim-report")
-    @Operation(summary = "중간 보고서 조회", description = "사용자 입력 값(수면/키/몸무게/나이/성별)을 기반으로 평균 대비 차이 / BMI등급 차이 / AI 점수·등급·활성 위험요인 전체 목록(topFactors, 가변 길이) 출력")
+    @Operation(
+            summary = "중간 보고서 조회",
+            description = "사용자 입력(수면은 시·분 둘 다 있어야 수면 비교 계산, 키/몸무게/나이/성별 등)을 기반으로 평균 대비 차이·BMI·유병률·(제출 후) AI 점수·topFactors 등을 반환합니다."
+    )
     public ApiResponse<TestResDTO.InterimReportDTO> getInterimReport(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId
@@ -55,7 +58,10 @@ public class TestController {
     }
 
     @PatchMapping("/{sessionId}/step/male")
-    @Operation(summary = "남성 임시 저장", description = "남성 전용 질문(step 1~11)을 세션에 임시 저장합니다. 세션 성별이 MALE인지 검증합니다.")
+    @Operation(
+            summary = "남성 임시 저장",
+            description = "남성 전용 질문(step 1~11) 임시 저장. 수면을 보낼 때는 sleepHours와 sleepMinutes를 **함께** 보내야 하며(한쪽만 내면 TEST400_7), 분 0~59·합계 24시간 이하입니다. 둘 다 생략하면 수면 필드는 갱신하지 않습니다."
+    )
     public ApiResponse<Void> saveMaleStep(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId,
@@ -66,7 +72,10 @@ public class TestController {
     }
 
     @PatchMapping("/{sessionId}/step/female")
-    @Operation(summary = "여성 임시 저장", description = "여성 전용 질문(step 1~9)을 세션에 임시 저장합니다. 세션 성별이 FEMALE인지 검증합니다.")
+    @Operation(
+            summary = "여성 임시 저장",
+            description = "여성 전용 질문(step 1~9) 임시 저장. 수면은 남성과 동일하게 sleepHours+sleepMinutes 쌍 검증(TEST400_7) 및 합계 ≤24h 규칙을 따릅니다."
+    )
     public ApiResponse<Void> saveFemaleStep(
             @AuthenticationPrincipal CustomPrincipal principal,
             @PathVariable Long sessionId,
@@ -80,6 +89,7 @@ public class TestController {
     @Operation(
             summary = "최종 제출 및 AI 예측 실행",
             description = "PSS 스트레스 10문항 제출 후 AI 예측을 실행하고 결과를 저장합니다. " +
+                    "세션에 수면 시·분이 모두 저장되어 있어야 하며(없거나 한쪽만 있으면 TEST400_7), 임시 저장 시와 동일한 유효 범위를 만족해야 합니다. " +
                     "본인 세션만 제출 가능하며, 이미 결과가 있으면 재제출 불가. " +
                     "응답의 topFactors는 활성 위험요인 전체 목록(가변 길이, 0~N개)이며 " +
                     "Top 3 고정이 아닙니다. (구 스펙의 top1/2/3, mission_candidates 필드는 제거됨)"
