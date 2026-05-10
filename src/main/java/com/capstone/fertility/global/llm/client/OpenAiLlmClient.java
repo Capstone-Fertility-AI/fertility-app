@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.netty.http.client.HttpClient;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -42,15 +43,26 @@ public class OpenAiLlmClient implements LlmClient {
 
     @Override
     public String chat(String systemPrompt, String userPrompt) {
-        Map<String, Object> body = Map.of(
-                "model", props.getModel(),
-                "temperature", props.getTemperature(),
-                "max_tokens", props.getMaxTokens(),
-                "messages", List.of(
-                        Map.of("role", "system", "content", systemPrompt),
-                        Map.of("role", "user", "content", userPrompt)
-                )
-        );
+        return call(systemPrompt, userPrompt, false);
+    }
+
+    @Override
+    public String chatJson(String systemPrompt, String userPrompt) {
+        return call(systemPrompt, userPrompt, true);
+    }
+
+    private String call(String systemPrompt, String userPrompt, boolean jsonMode) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", props.getModel());
+        body.put("temperature", props.getTemperature());
+        body.put("max_tokens", props.getMaxTokens());
+        body.put("messages", List.of(
+                Map.of("role", "system", "content", systemPrompt),
+                Map.of("role", "user", "content", userPrompt)
+        ));
+        if (jsonMode) {
+            body.put("response_format", Map.of("type", "json_object"));
+        }
 
         try {
             Map<?, ?> response = webClient.post()
