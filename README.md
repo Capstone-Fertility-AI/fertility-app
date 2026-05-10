@@ -231,11 +231,14 @@ ALTER TABLE "Users"
     ADD COLUMN IF NOT EXISTS last_inactivity_penalty_date DATE;
 ```
 
-꽃 종류 enum을 명세 3종(PEONY, BABYS_BREATH, LAVENDER)만 쓰도록 바꾼 경우, 레거시 값이 있으면 한 번 정리합니다.
+- **위 `ALTER`**: 운영에서 `spring.jpa.hibernate.ddl-auto`가 **`validate`(또는 none)** 이면 **반드시** 실행해야 합니다. 안 하면 새 버전 부팅 시 스키마 불일치로 실패할 수 있습니다. 로컬에서 `update`만 쓰는 경우는 부팅 시 자동 반영되는 경우가 많습니다.
+- **아래 꽃 `UPDATE`**: `user_flower_collections`에 **이미 행이 있고**, `flower_type`이 `PEONY`가 아닌 문자열이 남아 있을 때만 필요합니다. **테이블이 비었거나 처음부터 PEONY만 쓰면 생략**해도 됩니다.
+
+꽃은 현재 **PEONY 1종**만 사용합니다. DB에 다른 `flower_type` 문자열이 남아 있으면 앱이 읽지 못할 수 있으니, 필요 시 아래로 통일합니다.
 
 ```sql
 UPDATE user_flower_collections SET flower_type = 'PEONY'
-WHERE flower_type IN ('DAISY', 'ROSE', 'TULIP', 'SUNFLOWER');
+WHERE flower_type IS NOT NULL AND flower_type <> 'PEONY';
 ```
 
 ### AI 서버(FastAPI) 변경 사항

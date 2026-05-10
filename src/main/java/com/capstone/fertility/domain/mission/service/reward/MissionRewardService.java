@@ -10,12 +10,8 @@ import com.capstone.fertility.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 미션 완료/페널티 등으로 인한 경험치 보상을 일관되게 처리하는 도메인 서비스.
@@ -25,15 +21,11 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class MissionRewardService {
 
-    private static final List<FlowerType> SPEC_FINAL_FLOWERS = List.of(
-            FlowerType.PEONY,
-            FlowerType.BABYS_BREATH,
-            FlowerType.LAVENDER
-    );
+    /** 현재는 단일 꽃만 지급. 확장 시 후보 풀·랜덤 로직 추가. */
+    private static final FlowerType FINAL_FLOWER = FlowerType.PEONY;
 
     private final MissionSproutLogRepository missionSproutLogRepository;
     private final UserFlowerCollectionRepository userFlowerCollectionRepository;
-    private final SecureRandom random = new SecureRandom();
 
     /**
      * 미션 완료 보상 적용.
@@ -77,31 +69,20 @@ public class MissionRewardService {
     }
 
     /**
-     * Lv.5 도달 시 명세 3.1의 3종 꽃 중, 아직 없는 종류를 우선 랜덤 획득.
+     * Lv.5 도달 시 단일 꽃(PEONY) 1회 지급. 이미 도감에 있으면 null(멱등).
      */
     private FlowerType tryAwardFlower(User user) {
         List<UserFlowerCollection> owned = userFlowerCollectionRepository.findByUser_IdOrderByAchievedAtDesc(user.getId());
-        Set<FlowerType> ownedTypes = new HashSet<>();
         for (UserFlowerCollection c : owned) {
-            ownedTypes.add(c.getFlowerType());
-        }
-
-        List<FlowerType> candidates = new ArrayList<>();
-        for (FlowerType t : SPEC_FINAL_FLOWERS) {
-            if (!ownedTypes.contains(t)) {
-                candidates.add(t);
+            if (c.getFlowerType() == FINAL_FLOWER) {
+                return null;
             }
         }
-        if (candidates.isEmpty()) {
-            return null;
-        }
-
-        FlowerType picked = candidates.get(random.nextInt(candidates.size()));
         userFlowerCollectionRepository.save(UserFlowerCollection.builder()
                 .user(user)
-                .flowerType(picked)
+                .flowerType(FINAL_FLOWER)
                 .achievedAt(LocalDateTime.now())
                 .build());
-        return picked;
+        return FINAL_FLOWER;
     }
 }
