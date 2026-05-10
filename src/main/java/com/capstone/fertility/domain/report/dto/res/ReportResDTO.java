@@ -49,6 +49,7 @@ public class ReportResDTO {
 
     @Builder
     public record Mission(
+            Long missionId,
             String title,
             String description,
             String linkedFactor,

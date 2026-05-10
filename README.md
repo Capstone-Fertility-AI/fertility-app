@@ -173,6 +173,45 @@ UPDATE test_results
 
 local 환경(`ddl-auto: update`)은 부팅 시 `top_factors` 컬럼이 자동 추가됩니다. 레거시 컬럼은 자동 삭제되지 않으므로 수동 정리하거나 그대로 두어도 됩니다.
 
+### 웰니스 미션 도메인 신규 테이블 (필수)
+
+`feat/wellness-mission` 부터 LLM이 생성한 사용자별 맞춤 미션을 저장하기 위해 신규 테이블이 필요합니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS wellness_missions (
+    wellness_mission_id BIGSERIAL PRIMARY KEY,
+    user_id             BIGINT       NOT NULL,
+    test_result_id      BIGINT       NOT NULL,
+    title               VARCHAR(200) NOT NULL,
+    description         VARCHAR(1000),
+    linked_factor       VARCHAR(200),
+    category            VARCHAR(30)  NOT NULL,
+    frequency_type      VARCHAR(20)  NOT NULL,
+    frequency_count     INT          NOT NULL,
+    frequency_unit      VARCHAR(20),
+    duration_value      INT,
+    duration_unit       VARCHAR(20),
+    difficulty          VARCHAR(20)  NOT NULL,
+    user_adjustable     BOOLEAN      NOT NULL DEFAULT TRUE,
+    user_adjusted       BOOLEAN      NOT NULL DEFAULT FALSE,
+    created_at          TIMESTAMP,
+    updated_at          TIMESTAMP,
+    CONSTRAINT fk_wellness_missions_user
+        FOREIGN KEY (user_id) REFERENCES "Users"(user_id),
+    CONSTRAINT fk_wellness_missions_result
+        FOREIGN KEY (test_result_id) REFERENCES test_results(result_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_wellness_missions_user   ON wellness_missions(user_id);
+CREATE INDEX IF NOT EXISTS idx_wellness_missions_result ON wellness_missions(test_result_id);
+```
+
+- `category`: `SMOKING | DRINKING | SLEEP | EXERCISE | DISEASE | AGE | WEIGHT | OTHER`
+- `frequency_type`: `DAILY | WEEKLY`
+- `difficulty`: `EASY | MEDIUM | HARD`
+
+local(`ddl-auto: update`) 환경에서는 부팅 시 자동 생성됩니다.
+
 ### AI 서버(FastAPI) 변경 사항
 
 - 응답 `result.top_factors`는 **고정 길이 3이 아니라 가변 길이 배열**로 내려주세요(중요도 순서 유지).
