@@ -3,11 +3,20 @@ package com.capstone.fertility.domain.wellnessmission.support;
 import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResDTO;
 import com.capstone.fertility.domain.wellnessmission.entity.WellnessMission;
 
+import java.time.LocalDateTime;
+
 public final class WellnessMissionMapper {
 
     private WellnessMissionMapper() {}
 
     public static WellnessMissionResDTO.MissionItem toItem(WellnessMission e) {
+        return toItem(e, e.isCompleted(), e.getCompletedAt());
+    }
+
+    /**
+     * @param completed 현재 최신 검사·사이클 기준 완료 여부(또는 엔티티 플래그 대체)
+     */
+    public static WellnessMissionResDTO.MissionItem toItem(WellnessMission e, boolean completed, LocalDateTime completedAtOverride) {
         return WellnessMissionResDTO.MissionItem.builder()
                 .missionId(e.getId())
                 .resultId(e.getTestResult() != null ? e.getTestResult().getId() : null)
@@ -27,8 +36,8 @@ public final class WellnessMissionMapper {
                 .difficulty(e.getDifficulty() != null ? e.getDifficulty().name() : null)
                 .userAdjustable(e.isUserAdjustable())
                 .userAdjusted(e.isUserAdjusted())
-                .completed(e.isCompleted())
-                .completedAt(e.getCompletedAt())
+                .completed(completed)
+                .completedAt(completedAtOverride)
                 .servingLocalDate(e.getServingLocalDate() != null ? e.getServingLocalDate().toString() : null)
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())

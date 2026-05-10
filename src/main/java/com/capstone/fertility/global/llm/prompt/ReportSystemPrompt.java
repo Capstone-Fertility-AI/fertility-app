@@ -80,8 +80,9 @@ public final class ReportSystemPrompt {
 
             ── 동적 렌더링 규칙 ──
             - factorAnalyses는 입력 factors의 모든 항목을 같은 순서로 1:1 매핑하여 채웁니다. (factorCount 만큼)
-            - missions는 factors가 있을 경우 각 요인별로 1개씩 권장하되, 명백히 동일 카테고리가 연속될 경우 \
-              하나로 묶어도 됩니다. 최소 0개, 최대 5개로 제한합니다.
+            - missions: factors가 1개 이상일 때, 각 요인(factor)마다 정확히 3개의 미션을 생성합니다. \
+              missions 배열 총 길이는 반드시 factorCount * 3 입니다. 앞에서부터 factors[0]에 대응하는 3개, \
+              factors[1]에 대응하는 3개 … 순서로 배열합니다. 각 미션의 linkedFactor는 해당 요인 문자열과 정확히 동일하게 적습니다.
             - factorCount가 0이면 factorAnalyses와 missions는 빈 배열([])로 두고, comfortMessage·closing에서 \
               현재 좋은 습관을 유지하라는 칭찬과 격려를 충분히 담으세요.
             - duration 필드는 시간 개념이 어색한 미션(예: 식단)이라면 value=null, unit=null 로 두지 말고 \

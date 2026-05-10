@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -97,13 +96,27 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private List<WellnessMission> persistMissions(User user, TestResult result, List<ReportResDTO.Mission> missions) {
+        List<String> factors = result.getTopFactors() != null
+                ? result.getTopFactors().stream()
+                        .filter(f -> f != null && !f.isBlank())
+                        .map(String::trim)
+                        .toList()
+                : Collections.emptyList();
+
+        if (factors.isEmpty()) {
+            return Collections.emptyList();
+        }
         if (missions == null || missions.isEmpty()) {
             return Collections.emptyList();
         }
-        LocalDate todayKst = LocalDate.now(KST);
-        List<ReportResDTO.Mission> capped = missions.size() > 3 ? missions.subList(0, 3) : missions;
+
+        int expected = factors.size() * 3;
+        List<ReportResDTO.Mission> toSave = missions.size() >= expected
+                ? missions.subList(0, expected)
+                : missions;
+
         List<WellnessMission> entities = new ArrayList<>();
-        for (ReportResDTO.Mission m : capped) {
+        for (ReportResDTO.Mission m : toSave) {
             ReportResDTO.Frequency f = m.frequency();
             ReportResDTO.Duration d = m.duration();
 
@@ -122,7 +135,7 @@ public class ReportServiceImpl implements ReportService {
                     .difficulty(Difficulty.parseOrMedium(m.difficulty()))
                     .userAdjustable(m.userAdjustable() == null || m.userAdjustable())
                     .userAdjusted(false)
-                    .servingLocalDate(todayKst)
+                    .servingLocalDate(null)
                     .build();
             entities.add(entity);
         }
