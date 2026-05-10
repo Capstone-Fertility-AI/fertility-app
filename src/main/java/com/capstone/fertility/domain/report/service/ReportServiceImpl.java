@@ -24,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -35,6 +37,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ReportServiceImpl implements ReportService {
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final TestResultRepository testResultRepository;
     private final WellnessMissionRepository wellnessMissionRepository;
@@ -96,8 +100,10 @@ public class ReportServiceImpl implements ReportService {
         if (missions == null || missions.isEmpty()) {
             return Collections.emptyList();
         }
+        LocalDate todayKst = LocalDate.now(KST);
+        List<ReportResDTO.Mission> capped = missions.size() > 3 ? missions.subList(0, 3) : missions;
         List<WellnessMission> entities = new ArrayList<>();
-        for (ReportResDTO.Mission m : missions) {
+        for (ReportResDTO.Mission m : capped) {
             ReportResDTO.Frequency f = m.frequency();
             ReportResDTO.Duration d = m.duration();
 
@@ -116,6 +122,7 @@ public class ReportServiceImpl implements ReportService {
                     .difficulty(Difficulty.parseOrMedium(m.difficulty()))
                     .userAdjustable(m.userAdjustable() == null || m.userAdjustable())
                     .userAdjusted(false)
+                    .servingLocalDate(todayKst)
                     .build();
             entities.add(entity);
         }
@@ -140,6 +147,7 @@ public class ReportServiceImpl implements ReportService {
                         .build())
                 .difficulty(e.getDifficulty() != null ? e.getDifficulty().name() : null)
                 .userAdjustable(e.isUserAdjustable())
+                .servingLocalDate(e.getServingLocalDate() != null ? e.getServingLocalDate().toString() : null)
                 .build();
     }
 
@@ -229,6 +237,7 @@ public class ReportServiceImpl implements ReportService {
         if (node == null || !node.isArray()) return out;
         for (JsonNode item : node) {
             out.add(ReportResDTO.Mission.builder()
+                    .missionId(null)
                     .title(asText(item.path("title")))
                     .description(asText(item.path("description")))
                     .linkedFactor(asText(item.path("linkedFactor")))
@@ -237,6 +246,7 @@ public class ReportServiceImpl implements ReportService {
                     .duration(parseDuration(item.path("duration")))
                     .difficulty(asText(item.path("difficulty")))
                     .userAdjustable(item.path("userAdjustable").asBoolean(true))
+                    .servingLocalDate(null)
                     .build());
         }
         return out;

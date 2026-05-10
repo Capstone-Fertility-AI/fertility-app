@@ -7,6 +7,7 @@ import com.capstone.fertility.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -68,6 +69,19 @@ public class User extends BaseEntity {
     @Column(name = "last_mission_date")
     private LocalDateTime lastMissionDate;
 
+    /** KST 기준 일일 웰니스 미션 EXP 보상 카운터가 유효한 날짜 */
+    @Column(name = "daily_wellness_reward_date")
+    private LocalDate dailyWellnessRewardDate;
+
+    /** 해당 일에 +5 EXP를 받은 웰니스 미션 완료 횟수 (최대 3) */
+    @Builder.Default
+    @Column(name = "daily_wellness_reward_count")
+    private int dailyWellnessRewardCount = 0;
+
+    /** KST 기준, 마지막으로 미접속 페널티(-10)를 적용한 날짜 (같은 날 중복 적용 방지) */
+    @Column(name = "last_inactivity_penalty_date")
+    private LocalDate lastInactivityPenaltyDate;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(length = 20)
@@ -120,34 +134,85 @@ public class User extends BaseEntity {
         // 양방향 세팅이 필요하다면 partner.setPartner(this) 등 추가 구현 가능
     }
 
+    /** 최대 레벨 */
+    private static final int MAX_LEVEL = 5;
+
     /**
-     * 경험치 획득 및 레벨업 로직
+     * 레벨업에 필요한 EXP. requiredExpForLevelUp[L] = Lv.L에서 Lv.L+1로 가는 데 필요한 EXP.
+     * 명세: Lv1→Lv2:100, Lv2→Lv3:150, Lv3→Lv4:200, Lv4→Lv5:250.
+     * 인덱스 0은 사용하지 않음.
      */
-    public void addExp(int exp) {
+    private static final int[] REQUIRED_EXP = {0, 100, 150, 200, 250};
+
+    /**
+     * 경험치 획득 및 레벨업 처리 (RPG 식 바 시스템).
+     * - 현재 레벨의 임계 EXP를 채우면 레벨업, 초과분은 다음 레벨 EXP로 이월된다.
+     * - Lv.5 도달 시 더 이상 레벨업하지 않고, 추가 경험치는 currentExp에 누적되지 않는다 (현재 레벨에서 정지).
+     * - 음수(페널티) 입력도 허용. 단, currentExp가 0 미만으로 떨어지지 않도록 클램프.
+     *
+     * @return 이 호출로 레벨이 한 번이라도 올랐으면 true
+     */
+    public boolean addExp(int exp) {
+        int levelBefore = this.currentLevel;
         this.currentExp += exp;
 
-        // 미접속 페널티 등으로 경험치가 0 이하로 떨어지는 것을 방지
         if (this.currentExp < 0) {
             this.currentExp = 0;
         }
 
-        updateLevel();
+        while (this.currentLevel < MAX_LEVEL && this.currentExp >= REQUIRED_EXP[this.currentLevel]) {
+            this.currentExp -= REQUIRED_EXP[this.currentLevel];
+            this.currentLevel += 1;
+        }
+
+        // 최대 레벨에 도달하면 EXP 바는 0으로 고정 (다음 진행이 없음)
+        if (this.currentLevel >= MAX_LEVEL) {
+            this.currentExp = 0;
+        }
+
+        return this.currentLevel > levelBefore;
     }
 
     /**
-     * 누적 경험치에 따른 레벨 업데이트 로직
+     * 재검사 사이클: Lv.5 도달 후 새 검사를 시작했을 때 레벨/EXP를 초기화한다.
      */
-    private void updateLevel() {
-        if (this.currentExp >= 250) {
-            this.currentLevel = 5;
-        } else if (this.currentExp >= 200) {
-            this.currentLevel = 4;
-        } else if (this.currentExp >= 150) {
-            this.currentLevel = 3;
-        } else if (this.currentExp >= 100) {
-            this.currentLevel = 2;
-        } else {
-            this.currentLevel = 1;
+    public void resetProgressForNewCycle() {
+        this.currentLevel = 1;
+        this.currentExp = 0;
+    }
+
+    /**
+     * 외부 노출용: 현재 레벨에서 다음 레벨로 가는 데 필요한 총 EXP.
+     */
+    public int getRequiredExpForCurrentLevel() {
+        if (this.currentLevel >= MAX_LEVEL) {
+            return 0;
         }
+        return REQUIRED_EXP[this.currentLevel];
+    }
+
+    /** KST 기준으로 일일 웰니스 보상 카운터를 오늘 날짜에 맞게 초기화한다. */
+    public void alignDailyWellnessRewardCounter(LocalDate kstToday) {
+        if (dailyWellnessRewardDate == null || !dailyWellnessRewardDate.equals(kstToday)) {
+            this.dailyWellnessRewardDate = kstToday;
+            this.dailyWellnessRewardCount = 0;
+        }
+    }
+
+    /** 오늘 아직 +5 EXP를 3번 미만 받았는지 */
+    public boolean hasRemainingDailyWellnessExpRewards() {
+        return dailyWellnessRewardCount < 3;
+    }
+
+    public void incrementDailyWellnessExpRewards() {
+        this.dailyWellnessRewardCount++;
+    }
+
+    public LocalDate getLastInactivityPenaltyDate() {
+        return lastInactivityPenaltyDate;
+    }
+
+    public void setLastInactivityPenaltyDate(LocalDate lastInactivityPenaltyDate) {
+        this.lastInactivityPenaltyDate = lastInactivityPenaltyDate;
     }
 }

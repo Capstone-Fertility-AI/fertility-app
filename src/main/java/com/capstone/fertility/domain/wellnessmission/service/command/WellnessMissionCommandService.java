@@ -5,4 +5,6 @@ import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResD
 
 public interface WellnessMissionCommandService {
     WellnessMissionResDTO.MissionItem update(Long userId, Long missionId, WellnessMissionReqDTO.Update req);
+
+    WellnessMissionResDTO.CompleteResult complete(Long userId, Long missionId);
 }

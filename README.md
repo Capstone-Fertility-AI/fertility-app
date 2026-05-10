@@ -194,6 +194,8 @@ CREATE TABLE IF NOT EXISTS wellness_missions (
     difficulty          VARCHAR(20)  NOT NULL,
     user_adjustable     BOOLEAN      NOT NULL DEFAULT TRUE,
     user_adjusted       BOOLEAN      NOT NULL DEFAULT FALSE,
+    completed_at        TIMESTAMP,
+    serving_local_date  DATE,
     created_at          TIMESTAMP,
     updated_at          TIMESTAMP,
     CONSTRAINT fk_wellness_missions_user
@@ -209,8 +211,32 @@ CREATE INDEX IF NOT EXISTS idx_wellness_missions_result ON wellness_missions(tes
 - `category`: `SMOKING | DRINKING | SLEEP | EXERCISE | DISEASE | AGE | WEIGHT | OTHER`
 - `frequency_type`: `DAILY | WEEKLY`
 - `difficulty`: `EASY | MEDIUM | HARD`
+- `serving_local_date`: KST 기준 **오늘의 일일 미션** 윈도우(자정 리셋 시 갱신)
 
-local(`ddl-auto: update`) 환경에서는 부팅 시 자동 생성됩니다.
+local(`ddl-auto: update`) 환경에서는 부팅 시 컬럼이 자동 반영됩니다.
+
+#### 기존 DB 마이그레이션 (웰니스·새싹 명세)
+
+```sql
+ALTER TABLE wellness_missions
+    ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;
+ALTER TABLE wellness_missions
+    ADD COLUMN IF NOT EXISTS serving_local_date DATE;
+
+ALTER TABLE "Users"
+    ADD COLUMN IF NOT EXISTS daily_wellness_reward_date DATE;
+ALTER TABLE "Users"
+    ADD COLUMN IF NOT EXISTS daily_wellness_reward_count INT NOT NULL DEFAULT 0;
+ALTER TABLE "Users"
+    ADD COLUMN IF NOT EXISTS last_inactivity_penalty_date DATE;
+```
+
+꽃 종류 enum을 명세 3종(PEONY, BABYS_BREATH, LAVENDER)만 쓰도록 바꾼 경우, 레거시 값이 있으면 한 번 정리합니다.
+
+```sql
+UPDATE user_flower_collections SET flower_type = 'PEONY'
+WHERE flower_type IN ('DAISY', 'ROSE', 'TULIP', 'SUNFLOWER');
+```
 
 ### AI 서버(FastAPI) 변경 사항
 

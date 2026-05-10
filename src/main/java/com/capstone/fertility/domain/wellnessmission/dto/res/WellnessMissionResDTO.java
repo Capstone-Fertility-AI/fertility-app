@@ -20,8 +20,24 @@ public class WellnessMissionResDTO {
             String difficulty,
             Boolean userAdjustable,
             Boolean userAdjusted,
+            Boolean completed,
+            LocalDateTime completedAt,
+            String servingLocalDate,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
+    ) {}
+
+    @Builder
+    public record CompleteResult(
+            Long missionId,
+            int expGained,
+            int currentExp,
+            int currentLevel,
+            int requiredExpForCurrentLevel,
+            boolean isLevelUp,
+            boolean alreadyCompleted,
+            boolean dailyRewardCapReached,
+            String newFlower
     ) {}
 
     @Builder

@@ -9,6 +9,9 @@ import com.capstone.fertility.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(
         name = "wellness_missions",
@@ -77,6 +80,15 @@ public class WellnessMission extends BaseEntity {
     @Column(name = "user_adjusted", nullable = false)
     private boolean userAdjusted = false;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    /**
+     * KST 기준 이 미션이 속한 '오늘의 일괄' 날짜. 자정 이후에는 복제된 새 행이 오늘 날짜를 갖는다.
+     */
+    @Column(name = "serving_local_date")
+    private LocalDate servingLocalDate;
+
     public void adjust(Integer frequencyCount, Integer durationValue, Difficulty difficulty) {
         if (frequencyCount != null) {
             this.frequencyCount = frequencyCount;
@@ -88,5 +100,21 @@ public class WellnessMission extends BaseEntity {
             this.difficulty = difficulty;
         }
         this.userAdjusted = true;
+    }
+
+    public boolean isCompleted() {
+        return this.completedAt != null;
+    }
+
+    public void markCompleted(LocalDateTime when) {
+        this.completedAt = when;
+    }
+
+    /**
+     * 자정 이후 첫 접근 시: 오늘 날짜로 맞추고 완료 상태를 초기화해 다시 3개를 채울 수 있게 한다.
+     */
+    public void rolloverServingDay(LocalDate today) {
+        this.servingLocalDate = today;
+        this.completedAt = null;
     }
 }

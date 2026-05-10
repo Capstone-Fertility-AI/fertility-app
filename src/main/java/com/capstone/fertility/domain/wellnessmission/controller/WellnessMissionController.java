@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,6 +40,18 @@ public class WellnessMissionController {
         return ApiResponse.onSuccess(WellnessMissionSuccessCode.WELLNESS_MISSION_LIST_FETCHED, result);
     }
 
+    @GetMapping("/today")
+    @Operation(
+            summary = "오늘의 웰니스 미션 3개",
+            description = "KST 기준 오늘 제공되는 일일 미션(최대 3개)입니다. 자정이 지나 첫 조회 시 완료 상태가 리셋됩니다."
+    )
+    public ApiResponse<WellnessMissionResDTO.MyMissions> getTodayMissions(
+            @AuthenticationPrincipal CustomPrincipal principal
+    ) {
+        WellnessMissionResDTO.MyMissions result = wellnessMissionQueryService.getTodayMissions(principal.getUserId());
+        return ApiResponse.onSuccess(WellnessMissionSuccessCode.WELLNESS_MISSION_TODAY_FETCHED, result);
+    }
+
     @PatchMapping("/{missionId}")
     @Operation(
             summary = "웰니스 미션 수정",
@@ -53,5 +66,20 @@ public class WellnessMissionController {
                 principal.getUserId(), missionId, req
         );
         return ApiResponse.onSuccess(WellnessMissionSuccessCode.WELLNESS_MISSION_UPDATED, result);
+    }
+
+    @PostMapping("/{missionId}/complete")
+    @Operation(
+            summary = "웰니스 미션 완료",
+            description = "오늘(KST)의 웰니스 미션만 완료할 수 있습니다. 첫 3회까지 +5 EXP(일일 상한 15), 그 이후에는 완료만 처리되고 EXP는 0입니다. 레벨업 시 EXP 바는 초기화되며 Lv.5 도달 시 명세 3종 꽃 중 미보유 꽃을 자동 획득합니다."
+    )
+    public ApiResponse<WellnessMissionResDTO.CompleteResult> complete(
+            @AuthenticationPrincipal CustomPrincipal principal,
+            @Parameter(description = "완료할 미션 ID") @PathVariable Long missionId
+    ) {
+        WellnessMissionResDTO.CompleteResult result = wellnessMissionCommandService.complete(
+                principal.getUserId(), missionId
+        );
+        return ApiResponse.onSuccess(WellnessMissionSuccessCode.WELLNESS_MISSION_COMPLETED, result);
     }
 }

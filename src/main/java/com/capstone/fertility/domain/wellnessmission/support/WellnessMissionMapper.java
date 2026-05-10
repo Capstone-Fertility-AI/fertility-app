@@ -27,6 +27,9 @@ public final class WellnessMissionMapper {
                 .difficulty(e.getDifficulty() != null ? e.getDifficulty().name() : null)
                 .userAdjustable(e.isUserAdjustable())
                 .userAdjusted(e.isUserAdjusted())
+                .completed(e.isCompleted())
+                .completedAt(e.getCompletedAt())
+                .servingLocalDate(e.getServingLocalDate() != null ? e.getServingLocalDate().toString() : null)
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
                 .build();
