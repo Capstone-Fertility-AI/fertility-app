@@ -9,6 +9,11 @@ import com.capstone.fertility.domain.result.repository.TestResultRepository;
 import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.enums.Gender;
+import com.capstone.fertility.domain.wellnessmission.entity.WellnessMission;
+import com.capstone.fertility.domain.wellnessmission.enums.Difficulty;
+import com.capstone.fertility.domain.wellnessmission.enums.FrequencyType;
+import com.capstone.fertility.domain.wellnessmission.enums.MissionCategory;
+import com.capstone.fertility.domain.wellnessmission.repository.WellnessMissionRepository;
 import com.capstone.fertility.global.llm.client.LlmClient;
 import com.capstone.fertility.global.llm.prompt.ReportSystemPrompt;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -31,11 +38,15 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class ReportServiceImpl implements ReportService {
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     private final TestResultRepository testResultRepository;
+    private final WellnessMissionRepository wellnessMissionRepository;
     private final LlmClient llmClient;
     private final ObjectMapper objectMapper;
 
     @Override
+    @Transactional
     public ReportResDTO.DetailReport generateReport(Long userId, Long resultId) {
         TestResult result = testResultRepository.findById(resultId)
                 .orElseThrow(() -> new ReportException(ReportErrorCode.RESULT_NOT_FOUND));
@@ -59,6 +70,15 @@ public class ReportServiceImpl implements ReportService {
 
         ParsedReport parsed = parseLlmJson(llmJson);
 
+        // 같은 resultId로 이전에 저장된 미션이 있으면 재사용, 없으면 새로 저장
+        List<WellnessMission> persistedMissions = wellnessMissionRepository.existsByTestResultId(resultId)
+                ? wellnessMissionRepository.findAllByTestResultIdOrderByIdAsc(resultId)
+                : persistMissions(user, result, parsed.missions);
+
+        List<ReportResDTO.Mission> missionResponse = persistedMissions.stream()
+                .map(this::toMissionResponse)
+                .toList();
+
         String genderLabel = session.getGender() == Gender.M ? "남성" : "여성";
 
         return ReportResDTO.DetailReport.builder()
@@ -71,9 +91,68 @@ public class ReportServiceImpl implements ReportService {
                 .intro(parsed.intro)
                 .condition(parsed.condition)
                 .factorAnalyses(parsed.factorAnalyses)
-                .missions(parsed.missions)
+                .missions(missionResponse)
                 .closing(parsed.closing)
                 .build();
+    }
+
+    private List<WellnessMission> persistMissions(User user, TestResult result, List<ReportResDTO.Mission> missions) {
+        if (missions == null || missions.isEmpty()) {
+            return Collections.emptyList();
+        }
+        LocalDate todayKst = LocalDate.now(KST);
+        List<ReportResDTO.Mission> capped = missions.size() > 3 ? missions.subList(0, 3) : missions;
+        List<WellnessMission> entities = new ArrayList<>();
+        for (ReportResDTO.Mission m : capped) {
+            ReportResDTO.Frequency f = m.frequency();
+            ReportResDTO.Duration d = m.duration();
+
+            WellnessMission entity = WellnessMission.builder()
+                    .user(user)
+                    .testResult(result)
+                    .title(safe(m.title(), "미션"))
+                    .description(m.description())
+                    .linkedFactor(m.linkedFactor())
+                    .category(MissionCategory.parseOrOther(m.category()))
+                    .frequencyType(f != null ? FrequencyType.parseOrDaily(f.type()) : FrequencyType.DAILY)
+                    .frequencyCount(f != null && f.count() != null ? f.count() : 1)
+                    .frequencyUnit(f != null ? f.unit() : "회")
+                    .durationValue(d != null ? d.value() : null)
+                    .durationUnit(d != null ? d.unit() : null)
+                    .difficulty(Difficulty.parseOrMedium(m.difficulty()))
+                    .userAdjustable(m.userAdjustable() == null || m.userAdjustable())
+                    .userAdjusted(false)
+                    .servingLocalDate(todayKst)
+                    .build();
+            entities.add(entity);
+        }
+        return wellnessMissionRepository.saveAll(entities);
+    }
+
+    private ReportResDTO.Mission toMissionResponse(WellnessMission e) {
+        return ReportResDTO.Mission.builder()
+                .missionId(e.getId())
+                .title(e.getTitle())
+                .description(e.getDescription())
+                .linkedFactor(e.getLinkedFactor())
+                .category(e.getCategory() != null ? e.getCategory().name() : null)
+                .frequency(ReportResDTO.Frequency.builder()
+                        .type(e.getFrequencyType() != null ? e.getFrequencyType().name() : null)
+                        .count(e.getFrequencyCount())
+                        .unit(e.getFrequencyUnit())
+                        .build())
+                .duration(ReportResDTO.Duration.builder()
+                        .value(e.getDurationValue())
+                        .unit(e.getDurationUnit())
+                        .build())
+                .difficulty(e.getDifficulty() != null ? e.getDifficulty().name() : null)
+                .userAdjustable(e.isUserAdjustable())
+                .servingLocalDate(e.getServingLocalDate() != null ? e.getServingLocalDate().toString() : null)
+                .build();
+    }
+
+    private String safe(String s, String fallback) {
+        return (s == null || s.isBlank()) ? fallback : s;
     }
 
     private String buildUserPrompt(User user, TestSession session, TestResult result) {
@@ -158,6 +237,7 @@ public class ReportServiceImpl implements ReportService {
         if (node == null || !node.isArray()) return out;
         for (JsonNode item : node) {
             out.add(ReportResDTO.Mission.builder()
+                    .missionId(null)
                     .title(asText(item.path("title")))
                     .description(asText(item.path("description")))
                     .linkedFactor(asText(item.path("linkedFactor")))
@@ -166,6 +246,7 @@ public class ReportServiceImpl implements ReportService {
                     .duration(parseDuration(item.path("duration")))
                     .difficulty(asText(item.path("difficulty")))
                     .userAdjustable(item.path("userAdjustable").asBoolean(true))
+                    .servingLocalDate(null)
                     .build());
         }
         return out;

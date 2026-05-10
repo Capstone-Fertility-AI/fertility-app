@@ -12,10 +12,16 @@ public class MissionResDTO {
             @Schema(description = "이번 요청에서 실제로 반영된 경험치 증가분. 재완료 요청 시 0.")
             int expGained,
             int currentExp,
+            @Schema(description = "현재 레벨")
+            int currentLevel,
+            @Schema(description = "현재 레벨에서 다음 레벨로 가는 데 필요한 EXP. Lv.5(최대)이면 0.")
+            int requiredExpForCurrentLevel,
             @Schema(description = "이번 요청으로 레벨이 올랐는지 여부")
             boolean isLevelUp,
             @Schema(description = "이미 완료된 미션 재요청이면 true. 보상 exp가 0인 미션과 구분할 때 사용.")
-            boolean alreadyCompleted
+            boolean alreadyCompleted,
+            @Schema(description = "이번 레벨업으로 자동 획득한 꽃 도감(Lv.5 도달 시). 없으면 null.", nullable = true)
+            String newFlower
     ) {}
 
     @Builder

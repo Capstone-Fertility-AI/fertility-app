@@ -1,0 +1,114 @@
+package com.capstone.fertility.domain.wellnessmission.service.command;
+
+import com.capstone.fertility.domain.mission.service.reward.MissionRewardService;
+import com.capstone.fertility.domain.mission.service.reward.RewardResult;
+import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.domain.wellnessmission.dto.req.WellnessMissionReqDTO;
+import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResDTO;
+import com.capstone.fertility.domain.wellnessmission.entity.WellnessMission;
+import com.capstone.fertility.domain.wellnessmission.enums.Difficulty;
+import com.capstone.fertility.domain.wellnessmission.exception.WellnessMissionException;
+import com.capstone.fertility.domain.wellnessmission.exception.code.WellnessMissionErrorCode;
+import com.capstone.fertility.domain.wellnessmission.repository.WellnessMissionRepository;
+import com.capstone.fertility.domain.wellnessmission.service.WellnessMissionDailyRolloverService;
+import com.capstone.fertility.domain.wellnessmission.support.WellnessMissionMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class WellnessMissionCommandServiceImpl implements WellnessMissionCommandService {
+
+    /** 명세: 웰니스(일일) 미션 1개 완료당 +5 EXP, 하루 최대 3회(15 EXP). */
+    private static final int EXP_PER_MISSION = 5;
+
+    private final WellnessMissionRepository wellnessMissionRepository;
+    private final MissionRewardService missionRewardService;
+    private final WellnessMissionDailyRolloverService wellnessMissionDailyRolloverService;
+
+    @Override
+    public WellnessMissionResDTO.MissionItem update(Long userId, Long missionId, WellnessMissionReqDTO.Update req) {
+        WellnessMission mission = wellnessMissionRepository.findById(missionId)
+                .orElseThrow(() -> new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_FOUND));
+
+        if (!mission.getUser().getId().equals(userId)) {
+            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_OWNER);
+        }
+        if (!mission.isUserAdjustable()) {
+            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_ADJUSTABLE);
+        }
+
+        Difficulty parsedDifficulty = null;
+        if (req.difficulty() != null && !req.difficulty().isBlank()) {
+            try {
+                parsedDifficulty = Difficulty.valueOf(req.difficulty().trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_INVALID_FIELD);
+            }
+        }
+
+        mission.adjust(req.frequencyCount(), req.durationValue(), parsedDifficulty);
+
+        return WellnessMissionMapper.toItem(mission);
+    }
+
+    @Override
+    public WellnessMissionResDTO.CompleteResult complete(Long userId, Long missionId) {
+        wellnessMissionDailyRolloverService.ensureTodaysServingWindow(userId);
+        LocalDate today = LocalDate.now(WellnessMissionDailyRolloverService.KST);
+
+        WellnessMission mission = wellnessMissionRepository.findById(missionId)
+                .orElseThrow(() -> new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_FOUND));
+
+        User user = mission.getUser();
+        if (!user.getId().equals(userId)) {
+            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_OWNER);
+        }
+
+        if (mission.getServingLocalDate() == null || !mission.getServingLocalDate().equals(today)) {
+            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_EXPIRED);
+        }
+
+        if (mission.isCompleted()) {
+            return WellnessMissionResDTO.CompleteResult.builder()
+                    .missionId(mission.getId())
+                    .expGained(0)
+                    .currentExp(user.getCurrentExp())
+                    .currentLevel(user.getCurrentLevel())
+                    .requiredExpForCurrentLevel(user.getRequiredExpForCurrentLevel())
+                    .isLevelUp(false)
+                    .alreadyCompleted(true)
+                    .dailyRewardCapReached(false)
+                    .newFlower(null)
+                    .build();
+        }
+
+        user.alignDailyWellnessRewardCounter(today);
+        boolean giveExp = user.hasRemainingDailyWellnessExpRewards();
+
+        mission.markCompleted(LocalDateTime.now());
+
+        int exp = giveExp ? EXP_PER_MISSION : 0;
+        RewardResult reward = missionRewardService.grantMissionCompletion(user, exp);
+        if (giveExp) {
+            user.incrementDailyWellnessExpRewards();
+        }
+
+        return WellnessMissionResDTO.CompleteResult.builder()
+                .missionId(mission.getId())
+                .expGained(reward.expGained())
+                .currentExp(reward.currentExp())
+                .currentLevel(reward.currentLevel())
+                .requiredExpForCurrentLevel(user.getRequiredExpForCurrentLevel())
+                .isLevelUp(reward.isLevelUp())
+                .alreadyCompleted(false)
+                .dailyRewardCapReached(!giveExp)
+                .newFlower(reward.newFlower() != null ? reward.newFlower().name() : null)
+                .build();
+    }
+}

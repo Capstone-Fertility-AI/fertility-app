@@ -2,14 +2,13 @@ package com.capstone.fertility.domain.mission.service.command;
 
 import com.capstone.fertility.domain.mission.dto.res.MissionResDTO;
 import com.capstone.fertility.domain.mission.entity.Mission;
-import com.capstone.fertility.domain.mission.entity.MissionSproutLog;
 import com.capstone.fertility.domain.mission.entity.UserMission;
-import com.capstone.fertility.domain.mission.enums.SproutLogAction;
 import com.capstone.fertility.domain.mission.exception.MissionException;
 import com.capstone.fertility.domain.mission.exception.code.MissionErrorCode;
 import com.capstone.fertility.domain.mission.repository.MissionRepository;
-import com.capstone.fertility.domain.mission.repository.MissionSproutLogRepository;
 import com.capstone.fertility.domain.mission.repository.UserMissionRepository;
+import com.capstone.fertility.domain.mission.service.reward.MissionRewardService;
+import com.capstone.fertility.domain.mission.service.reward.RewardResult;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
@@ -28,8 +27,8 @@ public class MissionCommandServiceImpl implements MissionCommandService {
 
     private final MissionRepository missionRepository;
     private final UserMissionRepository userMissionRepository;
-    private final MissionSproutLogRepository missionSproutLogRepository;
     private final UserRepository userRepository;
+    private final MissionRewardService missionRewardService;
 
     @Override
     public MissionResDTO.MissionCompleteDTO complete(Long userId, Long missionId) {
@@ -44,36 +43,31 @@ public class MissionCommandServiceImpl implements MissionCommandService {
             return MissionResDTO.MissionCompleteDTO.builder()
                     .expGained(0)
                     .currentExp(user.getCurrentExp())
+                    .currentLevel(user.getCurrentLevel())
+                    .requiredExpForCurrentLevel(user.getRequiredExpForCurrentLevel())
                     .isLevelUp(false)
                     .alreadyCompleted(true)
+                    .newFlower(null)
                     .build();
         }
 
-        LocalDateTime now = LocalDateTime.now();
         UserMission userMission = UserMission.builder()
                 .user(user)
                 .mission(mission)
-                .completedAt(now)
+                .completedAt(LocalDateTime.now())
                 .build();
         userMissionRepository.save(userMission);
 
-        int reward = mission.getRewardExp();
-        int levelBefore = user.getCurrentLevel();
-        user.addExp(reward);
-        user.updateLastMissionDate();
-        boolean levelUp = user.getCurrentLevel() > levelBefore;
-
-        missionSproutLogRepository.save(MissionSproutLog.builder()
-                .user(user)
-                .action(SproutLogAction.MISSION_COMPLETE)
-                .expDelta(reward)
-                .build());
+        RewardResult reward = missionRewardService.grantMissionCompletion(user, mission.getRewardExp());
 
         return MissionResDTO.MissionCompleteDTO.builder()
-                .expGained(reward)
-                .currentExp(user.getCurrentExp())
-                .isLevelUp(levelUp)
+                .expGained(reward.expGained())
+                .currentExp(reward.currentExp())
+                .currentLevel(reward.currentLevel())
+                .requiredExpForCurrentLevel(user.getRequiredExpForCurrentLevel())
+                .isLevelUp(reward.isLevelUp())
                 .alreadyCompleted(false)
+                .newFlower(reward.newFlower() != null ? reward.newFlower().name() : null)
                 .build();
     }
 }

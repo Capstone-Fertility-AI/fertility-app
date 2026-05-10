@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum MissionErrorCode implements BaseErrorCode {
 
-    MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "MISSION404_1", "해당 미션을 찾을 수 없습니다.");
+    MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "MISSION404_1", "해당 미션을 찾을 수 없습니다."),
+    SPROUT_RESET_REQUIRES_LEVEL_5(HttpStatus.BAD_REQUEST, "MISSION400_1", "재검사 사이클 초기화는 새싹 Lv.5(꽃 달성) 상태에서만 가능합니다.");
 
     private final HttpStatus status;
     private final String code;
