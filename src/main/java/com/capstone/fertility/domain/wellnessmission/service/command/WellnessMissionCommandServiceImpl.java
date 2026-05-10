@@ -6,30 +6,36 @@ import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.wellnessmission.dto.req.WellnessMissionReqDTO;
 import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResDTO;
 import com.capstone.fertility.domain.wellnessmission.entity.WellnessMission;
+import com.capstone.fertility.domain.wellnessmission.entity.WellnessMissionOfferState;
 import com.capstone.fertility.domain.wellnessmission.enums.Difficulty;
 import com.capstone.fertility.domain.wellnessmission.exception.WellnessMissionException;
 import com.capstone.fertility.domain.wellnessmission.exception.code.WellnessMissionErrorCode;
+import com.capstone.fertility.domain.wellnessmission.repository.WellnessMissionCycleCompletionRepository;
 import com.capstone.fertility.domain.wellnessmission.repository.WellnessMissionRepository;
-import com.capstone.fertility.domain.wellnessmission.service.WellnessMissionDailyRolloverService;
+import com.capstone.fertility.domain.wellnessmission.service.WellnessMissionProgressService;
 import com.capstone.fertility.domain.wellnessmission.support.WellnessMissionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class WellnessMissionCommandServiceImpl implements WellnessMissionCommandService {
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     /** 명세: 웰니스(일일) 미션 1개 완료당 +5 EXP, 하루 최대 3회(15 EXP). */
     private static final int EXP_PER_MISSION = 5;
 
     private final WellnessMissionRepository wellnessMissionRepository;
+    private final WellnessMissionCycleCompletionRepository wellnessMissionCycleCompletionRepository;
     private final MissionRewardService missionRewardService;
-    private final WellnessMissionDailyRolloverService wellnessMissionDailyRolloverService;
+    private final WellnessMissionProgressService wellnessMissionProgressService;
 
     @Override
     public WellnessMissionResDTO.MissionItem update(Long userId, Long missionId, WellnessMissionReqDTO.Update req) {
@@ -59,8 +65,7 @@ public class WellnessMissionCommandServiceImpl implements WellnessMissionCommand
 
     @Override
     public WellnessMissionResDTO.CompleteResult complete(Long userId, Long missionId) {
-        wellnessMissionDailyRolloverService.ensureTodaysServingWindow(userId);
-        LocalDate today = LocalDate.now(WellnessMissionDailyRolloverService.KST);
+        LocalDate today = LocalDate.now(KST);
 
         WellnessMission mission = wellnessMissionRepository.findById(missionId)
                 .orElseThrow(() -> new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_FOUND));
@@ -70,11 +75,25 @@ public class WellnessMissionCommandServiceImpl implements WellnessMissionCommand
             throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_OWNER);
         }
 
-        if (mission.getServingLocalDate() == null || !mission.getServingLocalDate().equals(today)) {
-            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_EXPIRED);
+        Long latestResultId = wellnessMissionRepository.findMaxTestResultIdByUserId(userId).orElse(null);
+        if (latestResultId == null || !mission.getTestResult().getId().equals(latestResultId)) {
+            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_LATEST_RESULT);
         }
 
-        if (mission.isCompleted()) {
+        List<WellnessMission> pool = wellnessMissionRepository.findByUser_IdAndTestResult_IdOrderByIdAsc(userId, latestResultId);
+        WellnessMissionProgressService.SynchronizedOffer snap =
+                wellnessMissionProgressService.synchronizeAndLoadOfferedMissions(user, latestResultId, pool);
+        WellnessMissionOfferState state = snap.state();
+        if (state == null) {
+            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_FOUND);
+        }
+
+        if (!state.containsMissionId(missionId)) {
+            throw new WellnessMissionException(WellnessMissionErrorCode.WELLNESS_MISSION_NOT_OFFERED);
+        }
+
+        int cycleIndex = state.getCycleIndex();
+        if (wellnessMissionCycleCompletionRepository.existsByUser_IdAndWellnessMission_IdAndCycleIndex(userId, missionId, cycleIndex)) {
             return WellnessMissionResDTO.CompleteResult.builder()
                     .missionId(mission.getId())
                     .expGained(0)
@@ -91,13 +110,15 @@ public class WellnessMissionCommandServiceImpl implements WellnessMissionCommand
         user.alignDailyWellnessRewardCounter(today);
         boolean giveExp = user.hasRemainingDailyWellnessExpRewards();
 
-        mission.markCompleted(LocalDateTime.now());
+        wellnessMissionProgressService.recordCycleCompletion(user, mission, latestResultId, cycleIndex);
 
         int exp = giveExp ? EXP_PER_MISSION : 0;
         RewardResult reward = missionRewardService.grantMissionCompletion(user, exp);
         if (giveExp) {
             user.incrementDailyWellnessExpRewards();
         }
+
+        wellnessMissionProgressService.afterRecordedCompletion(userId, latestResultId, pool);
 
         return WellnessMissionResDTO.CompleteResult.builder()
                 .missionId(mission.getId())

@@ -109,12 +109,4 @@ public class WellnessMission extends BaseEntity {
     public void markCompleted(LocalDateTime when) {
         this.completedAt = when;
     }
-
-    /**
-     * 자정 이후 첫 접근 시: 오늘 날짜로 맞추고 완료 상태를 초기화해 다시 3개를 채울 수 있게 한다.
-     */
-    public void rolloverServingDay(LocalDate today) {
-        this.servingLocalDate = today;
-        this.completedAt = null;
-    }
 }

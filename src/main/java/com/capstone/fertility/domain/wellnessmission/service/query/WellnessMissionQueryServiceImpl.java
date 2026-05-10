@@ -1,32 +1,45 @@
 package com.capstone.fertility.domain.wellnessmission.service.query;
 
+import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.domain.user.exception.UserException;
+import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
+import com.capstone.fertility.domain.user.repository.UserRepository;
 import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResDTO;
 import com.capstone.fertility.domain.wellnessmission.entity.WellnessMission;
 import com.capstone.fertility.domain.wellnessmission.repository.WellnessMissionRepository;
-import com.capstone.fertility.domain.wellnessmission.service.WellnessMissionDailyRolloverService;
+import com.capstone.fertility.domain.wellnessmission.service.WellnessMissionProgressService;
 import com.capstone.fertility.domain.wellnessmission.support.WellnessMissionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class WellnessMissionQueryServiceImpl implements WellnessMissionQueryService {
 
     private final WellnessMissionRepository wellnessMissionRepository;
-    private final WellnessMissionDailyRolloverService wellnessMissionDailyRolloverService;
+    private final WellnessMissionProgressService wellnessMissionProgressService;
+    private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public WellnessMissionResDTO.MyMissions getMyMissions(Long userId) {
         List<WellnessMission> missions = wellnessMissionRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+        Long latestResultId = wellnessMissionRepository.findMaxTestResultIdByUserId(userId).orElse(null);
+        Set<Long> completedInActiveCycle = wellnessMissionProgressService.completedMissionIdsForLatestResult(userId);
         List<WellnessMissionResDTO.MissionItem> items = missions.stream()
-                .map(WellnessMissionMapper::toItem)
-                .toList();
+                .map(m -> {
+                    boolean done = latestResultId != null
+                            && m.getTestResult() != null
+                            && latestResultId.equals(m.getTestResult().getId())
+                            && completedInActiveCycle.contains(m.getId());
+                    return WellnessMissionMapper.toItem(m, done, null);
+                })
+                .collect(Collectors.toList());
         return WellnessMissionResDTO.MyMissions.builder()
                 .total(items.size())
                 .missions(items)
@@ -36,8 +49,9 @@ public class WellnessMissionQueryServiceImpl implements WellnessMissionQueryServ
     @Override
     @Transactional
     public WellnessMissionResDTO.MyMissions getTodayMissions(Long userId) {
-        wellnessMissionDailyRolloverService.ensureTodaysServingWindow(userId);
-        LocalDate today = LocalDate.now(WellnessMissionDailyRolloverService.KST);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
+
         Long latestResultId = wellnessMissionRepository.findMaxTestResultIdByUserId(userId).orElse(null);
         if (latestResultId == null) {
             return WellnessMissionResDTO.MyMissions.builder()
@@ -45,14 +59,12 @@ public class WellnessMissionQueryServiceImpl implements WellnessMissionQueryServ
                     .missions(List.of())
                     .build();
         }
-        List<WellnessMission> rows = wellnessMissionRepository.findByUser_IdAndTestResult_IdOrderByIdAsc(userId, latestResultId);
-        List<WellnessMission> top3 = rows.size() > 3 ? rows.subList(0, 3) : rows;
-        List<WellnessMissionResDTO.MissionItem> items = new ArrayList<>();
-        for (WellnessMission m : top3) {
-            if (m.getServingLocalDate() != null && m.getServingLocalDate().equals(today)) {
-                items.add(WellnessMissionMapper.toItem(m));
-            }
-        }
+        List<WellnessMission> pool = wellnessMissionRepository.findByUser_IdAndTestResult_IdOrderByIdAsc(userId, latestResultId);
+        WellnessMissionProgressService.SynchronizedOffer snap =
+                wellnessMissionProgressService.synchronizeAndLoadOfferedMissions(user, latestResultId, pool);
+        List<WellnessMissionResDTO.MissionItem> items = snap.offered().stream()
+                .map(m -> WellnessMissionMapper.toItem(m, false, null))
+                .collect(Collectors.toList());
         return WellnessMissionResDTO.MyMissions.builder()
                 .total(items.size())
                 .missions(items)

@@ -42,8 +42,9 @@ public class WellnessMissionController {
 
     @GetMapping("/today")
     @Operation(
-            summary = "오늘의 웰니스 미션 3개",
-            description = "KST 기준 오늘 제공되는 일일 미션(최대 3개)입니다. 자정이 지나 첫 조회 시 완료 상태가 리셋됩니다."
+            summary = "진행 중 웰니스 미션(최대 3개)",
+            description = "최신 검사 결과의 미션 풀에서 아직 완료하지 않은 항목만 후보로 하여 최대 3개를 노출합니다. "
+                    + "완료한 미션은 슬롯에서 빠지고 미완료 항목으로 다시 채워집니다. 풀 전체를 한 번씩 완료하면 다음 사이클이 시작되며 후보 구성이 다시 랜덤으로 섞입니다."
     )
     public ApiResponse<WellnessMissionResDTO.MyMissions> getTodayMissions(
             @AuthenticationPrincipal CustomPrincipal principal
@@ -71,7 +72,8 @@ public class WellnessMissionController {
     @PostMapping("/{missionId}/complete")
     @Operation(
             summary = "웰니스 미션 완료",
-            description = "오늘(KST)의 웰니스 미션만 완료할 수 있습니다. 첫 3회까지 +5 EXP(일일 상한 15), 그 이후에는 완료만 처리되고 EXP는 0입니다. 레벨업 시 EXP 바는 초기화되며 Lv.5 도달 시 명세 3종 꽃 중 미보유 꽃을 자동 획득합니다."
+            description = "현재 GET /api/missions/today 로 노출된 미션만 완료할 수 있습니다. "
+                    + "KST 기준 하루 처음 3회까지 +5 EXP(일일 상한 15), 이후에는 EXP 0으로 완료만 기록됩니다."
     )
     public ApiResponse<WellnessMissionResDTO.CompleteResult> complete(
             @AuthenticationPrincipal CustomPrincipal principal,
