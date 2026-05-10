@@ -9,6 +9,7 @@ import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.test.exception.TestException;
 import com.capstone.fertility.domain.test.exception.code.TestErrorCode;
 import com.capstone.fertility.domain.test.repository.TestSessionRepository;
+import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.user.enums.Gender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -109,20 +110,22 @@ public class TestQueryServiceImpl implements TestQueryService {
 
         Integer age = session.getAge();
         Integer sleepHours = session.getSleepHours();
+        Integer sleepMinutes = session.getSleepMinutes();
         Double height = session.getHeight(); // cm
         Double weight = session.getWeight(); // kg
         Gender gender = session.getGender();
 
-        boolean sleepCalculated = age != null && sleepHours != null;
+        boolean sleepCalculated = age != null && sleepHours != null && sleepMinutes != null;
         String sleepAgeBand = null;
         Double sleepAvgHours = null;
         Double sleepDeltaHours = null;
 
-        if (age != null && sleepHours != null) {
+        if (age != null && sleepHours != null && sleepMinutes != null) {
             AgeBandResult sleepBand = resolveSleepAgeBandAndAvgHours(age);
             sleepAgeBand = sleepBand.ageBandLabel();
             sleepAvgHours = round1(sleepBand.avgHours());
-            sleepDeltaHours = round1(sleepHours.intValue() - sleepAvgHours);
+            double userSleepHours = SleepInputSupport.totalSleepHoursDecimal(sleepHours, sleepMinutes);
+            sleepDeltaHours = round1(userSleepHours - sleepAvgHours);
         }
 
         boolean obesityCalculated = age != null && gender != null && height != null && weight != null;

@@ -13,6 +13,7 @@ import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.test.exception.TestException;
 import com.capstone.fertility.domain.test.exception.code.TestErrorCode;
 import com.capstone.fertility.domain.test.repository.TestSessionRepository;
+import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.user.enums.Gender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -67,12 +68,15 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
             }
         }
 
+        SleepInputSupport.validateRequiredPair(session.getSleepHours(), session.getSleepMinutes());
+
         // ② PSS 총점 및 구간 판별 → TestSession 최종 데이터 업데이트 및 완료
         int stressScore = pssAnswers.stream().mapToInt(Integer::intValue).sum();
         String stressLevel = resolveStressLevel(stressScore);
 
         session.updateFinalDataAndComplete(
                 session.getSleepHours(),
+                session.getSleepMinutes(),
                 session.getNumBioKid(),
                 session.getSexFreq(),
                 session.getHasSex12Mo(),
@@ -147,7 +151,9 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
                 .hasSex12Mo(sessionGender == Gender.M
                         ? (session.getHasSex12Mo() != null && session.getHasSex12Mo() ? 1 : 0)
                         : null)
-                .sleepHours(session.getSleepHours())
+                .sleepHours(SleepInputSupport.roundSleepHoursForAi(
+                        session.getSleepHours().intValue(),
+                        session.getSleepMinutes().intValue()))
                 .stressScore(session.getStressScore())
                 .stressLevel(session.getStressLevel())
                 .build();

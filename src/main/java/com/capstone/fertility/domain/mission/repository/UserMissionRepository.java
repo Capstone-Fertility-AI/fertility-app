@@ -1,0 +1,11 @@
+package com.capstone.fertility.domain.mission.repository;
+
+import com.capstone.fertility.domain.mission.entity.UserMission;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserMissionRepository extends JpaRepository<UserMission, Long> {
+
+    Optional<UserMission> findByUser_IdAndMission_Id(Long userId, Long missionId);
+}

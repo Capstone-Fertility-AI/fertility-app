@@ -1,36 +1,32 @@
 package com.capstone.fertility.domain.mission.entity;
 
+import com.capstone.fertility.domain.mission.enums.SproutLogAction;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(
-        name = "user_missions",
-        uniqueConstraints = @UniqueConstraint(name = "uk_user_mission", columnNames = {"user_id", "mission_id"})
-)
+@Table(name = "mission_sprout_logs")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class UserMission extends BaseEntity {
+public class MissionSproutLog extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_mission_id")
+    @Column(name = "log_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "mission_id", nullable = false)
-    private Mission mission;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "action", length = 40, nullable = false)
+    private SproutLogAction action;
 
-    @Column(name = "completed_at", nullable = false)
-    private LocalDateTime completedAt;
+    @Column(name = "exp_delta", nullable = false)
+    private int expDelta;
 }

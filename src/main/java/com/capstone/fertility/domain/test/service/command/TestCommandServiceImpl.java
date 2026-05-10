@@ -8,6 +8,7 @@ import com.capstone.fertility.domain.test.enums.TestSessionStatus;
 import com.capstone.fertility.domain.test.exception.TestException;
 import com.capstone.fertility.domain.test.exception.code.TestErrorCode;
 import com.capstone.fertility.domain.test.repository.TestSessionRepository;
+import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.user.enums.Gender;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.exception.UserException;
@@ -59,6 +60,8 @@ public class TestCommandServiceImpl implements TestCommandService {
             throw new TestException(TestErrorCode.SESSION_GENDER_MISMATCH);
         }
 
+        SleepInputSupport.validateOptionalPair(request.sleepHours(), request.sleepMinutes());
+
         session.updateMaleStepData(
                 request.step(),
                 request.age(),
@@ -72,7 +75,8 @@ public class TestCommandServiceImpl implements TestCommandService {
                 request.smokeStatus(),
                 request.drinkStatus(),
                 request.bingeStatus(),
-                request.sleepHours()
+                request.sleepHours(),
+                request.sleepMinutes()
         );
         testSessionRepository.save(session);
     }
@@ -96,6 +100,8 @@ public class TestCommandServiceImpl implements TestCommandService {
             throw new TestException(TestErrorCode.SESSION_GENDER_MISMATCH);
         }
 
+        SleepInputSupport.validateOptionalPair(request.sleepHours(), request.sleepMinutes());
+
         session.updateFemaleStepData(
                 request.step(),
                 request.age(),
@@ -111,7 +117,8 @@ public class TestCommandServiceImpl implements TestCommandService {
                 request.pid(),
                 request.smokeLevel(),
                 request.binge12(),
-                request.sleepHours()
+                request.sleepHours(),
+                request.sleepMinutes()
         );
         testSessionRepository.save(session);
     }

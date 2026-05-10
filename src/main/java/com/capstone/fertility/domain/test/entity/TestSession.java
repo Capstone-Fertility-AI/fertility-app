@@ -103,9 +103,13 @@ public class TestSession extends BaseEntity {
     @Column(name = "current_step")
     private Integer currentStep;
 
-    /** 9번 질문: 하루 수면 시간 */
+    /** 9번 질문: 하루 수면 시간(시) */
     @Column(name = "sleep_hours")
     private Integer sleepHours;
+
+    /** 9번 질문: 하루 수면 시간(분, 0~59) */
+    @Column(name = "sleep_minutes")
+    private Integer sleepMinutes;
 
     /** PSS 스트레스 설문 총점 (0~40) */
     @Column(name = "stress_score")
@@ -133,7 +137,8 @@ public class TestSession extends BaseEntity {
             String smokeStatus,
             String drinkStatus,
             String bingeStatus,
-            Integer sleepHours
+            Integer sleepHours,
+            Integer sleepMinutes
     ) {
         if (step != null) this.currentStep = step;
         if (age != null) this.age = age;
@@ -148,6 +153,7 @@ public class TestSession extends BaseEntity {
         if (drinkStatus != null) this.drinkStatus = drinkStatus;
         if (bingeStatus != null) this.bingeStatus = bingeStatus;
         if (sleepHours != null) this.sleepHours = sleepHours;
+        if (sleepMinutes != null) this.sleepMinutes = sleepMinutes;
     }
 
     /**
@@ -168,7 +174,8 @@ public class TestSession extends BaseEntity {
             Integer pid,
             Integer smokeLevel,
             Integer binge12,
-            Integer sleepHours
+            Integer sleepHours,
+            Integer sleepMinutes
     ) {
         if (step != null) this.currentStep = step;
         if (age != null) this.age = age;
@@ -185,6 +192,7 @@ public class TestSession extends BaseEntity {
         if (smokeLevel != null) this.smokeLevel = smokeLevel;
         if (binge12 != null) this.binge12 = binge12;
         if (sleepHours != null) this.sleepHours = sleepHours;
+        if (sleepMinutes != null) this.sleepMinutes = sleepMinutes;
     }
 
     /**
@@ -192,6 +200,7 @@ public class TestSession extends BaseEntity {
      */
     public void updateFinalDataAndComplete(
             Integer sleepHours,
+            Integer sleepMinutes,
             Integer numBioKid,
             Integer sexFreq,
             Boolean hasSex12Mo,
@@ -202,6 +211,7 @@ public class TestSession extends BaseEntity {
             String stressLevel
     ) {
         this.sleepHours = sleepHours;
+        this.sleepMinutes = sleepMinutes;
         this.numBioKid = numBioKid;
         this.sexFreq = sexFreq;
         this.hasSex12Mo = hasSex12Mo;

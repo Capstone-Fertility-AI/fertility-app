@@ -58,6 +58,7 @@ public class TestConverter {
                 .smokeLevel(session.getSmokeLevel())
                 .binge12(session.getBinge12())
                 .sleepHours(session.getSleepHours())
+                .sleepMinutes(session.getSleepMinutes())
                 .numBioKid(session.getNumBioKid())
                 .sexFreq(session.getSexFreq())
                 .hasSex12Mo(session.getHasSex12Mo())

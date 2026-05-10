@@ -62,6 +62,7 @@ public class TestResDTO {
             Integer smokeLevel,
             Integer binge12,
             Integer sleepHours,
+            Integer sleepMinutes,
 
             // 남성/공통 추가 필드
             Integer numBioKid,
