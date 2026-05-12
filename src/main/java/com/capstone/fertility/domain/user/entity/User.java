@@ -74,9 +74,8 @@ public class User extends BaseEntity {
     private LocalDate dailyWellnessRewardDate;
 
     /** 해당 일에 +5 EXP를 받은 웰니스 미션 완료 횟수 (최대 3) */
-    @Builder.Default
     @Column(name = "daily_wellness_reward_count")
-    private int dailyWellnessRewardCount = 0;
+    private Integer dailyWellnessRewardCount;
 
     /** KST 기준, 마지막으로 미접속 페널티(-10)를 적용한 날짜 (같은 날 중복 적용 방지) */
     @Column(name = "last_inactivity_penalty_date")
@@ -201,11 +200,15 @@ public class User extends BaseEntity {
 
     /** 오늘 아직 +5 EXP를 3번 미만 받았는지 */
     public boolean hasRemainingDailyWellnessExpRewards() {
-        return dailyWellnessRewardCount < 3;
+        return effectiveDailyWellnessRewardCount() < 3;
     }
 
     public void incrementDailyWellnessExpRewards() {
-        this.dailyWellnessRewardCount++;
+        this.dailyWellnessRewardCount = effectiveDailyWellnessRewardCount() + 1;
+    }
+
+    private int effectiveDailyWellnessRewardCount() {
+        return dailyWellnessRewardCount == null ? 0 : dailyWellnessRewardCount;
     }
 
     public LocalDate getLastInactivityPenaltyDate() {
