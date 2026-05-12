@@ -4,6 +4,7 @@ import com.capstone.fertility.domain.user.converter.UserConverter;
 import com.capstone.fertility.domain.user.dto.req.UserReqDTO;
 import com.capstone.fertility.domain.user.dto.res.UserResDTO;
 import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.domain.user.enums.LoginType;
 import com.capstone.fertility.domain.user.enums.Role;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
@@ -76,7 +77,12 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User user = userRepository.findByEmail(request.email()).orElseThrow(() -> new UserException(UserErrorCode.USER_EMAIL_NOT_FOUND));
 
-        if (!passwordEncoder.matches(request.password(), user.getPassword())){
+        ensureEmailLoginAllowed(user);
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new UserException(UserErrorCode.INVALID_PASSWORD);
+        }
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new UserException(UserErrorCode.INVALID_PASSWORD);
         }
 
@@ -84,5 +90,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         String refreshToken = refreshTokenProvider.createAndSave(user.getId());
 
         return UserConverter.toLoginResDTO(accessToken, refreshToken, user);
+    }
+
+    private void ensureEmailLoginAllowed(User user) {
+        LoginType loginType = user.getLoginType();
+        if (loginType == LoginType.KAKAO || (loginType == null && user.getKakaoId() != null)) {
+            throw new UserException(UserErrorCode.EMAIL_LOGIN_NOT_SUPPORTED_FOR_SOCIAL);
+        }
     }
 }

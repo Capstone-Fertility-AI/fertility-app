@@ -16,6 +16,7 @@ public enum UserErrorCode implements BaseErrorCode {
     // [이메일 로그인 관련 추가]
     USER_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "USER404_4", "가입되지 않은 이메일입니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "AUTH401_3", "비밀번호가 일치하지 않습니다."),
+    EMAIL_LOGIN_NOT_SUPPORTED_FOR_SOCIAL(HttpStatus.BAD_REQUEST, "AUTH400_4", "카카오 로그인으로 가입한 계정입니다. 카카오 로그인을 이용해 주세요."),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER409_1", "이미 가입된 이메일입니다."), // U002에서 수정
 
     // [인증/토큰 관련]
