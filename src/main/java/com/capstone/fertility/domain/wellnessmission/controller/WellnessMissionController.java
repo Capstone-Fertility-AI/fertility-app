@@ -2,7 +2,6 @@ package com.capstone.fertility.domain.wellnessmission.controller;
 
 import com.capstone.fertility.domain.mission.dto.res.MissionResDTO;
 import com.capstone.fertility.domain.mission.service.query.MissionQueryService;
-import com.capstone.fertility.domain.wellnessmission.dto.req.WellnessMissionReqDTO;
 import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResDTO;
 import com.capstone.fertility.domain.wellnessmission.exception.code.WellnessMissionSuccessCode;
 import com.capstone.fertility.domain.wellnessmission.service.command.WellnessMissionCommandService;
@@ -11,14 +10,11 @@ import com.capstone.fertility.global.apiPayLoad.ApiResponse;
 import com.capstone.fertility.global.security.CustomPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,7 +58,7 @@ public class WellnessMissionController {
     @GetMapping("/history")
     @Operation(
             summary = "새싹 성장 기록(히스토리)",
-            description = "정적 미션·웰니스 미션 등 보상/성장 이벤트가 쌓인 새싹 로그입니다. "
+            description = "미션 완료·페널티 등 보상/성장 이벤트가 쌓인 새싹 로그입니다. "
                     + "커서 기반 페이지네이션: 첫 요청은 lastLogId 생략, 다음 페이지는 직전 응답의 nextLastLogId를 lastLogId로 전달합니다."
     )
     public ApiResponse<MissionResDTO.MissionHistoryDTO> getHistory(
@@ -86,22 +82,6 @@ public class WellnessMissionController {
     ) {
         List<MissionResDTO.FlowerCollectionItemDTO> result = missionQueryService.getCollections(principal.getUserId());
         return ApiResponse.onSuccess(WellnessMissionSuccessCode.WELLNESS_MISSION_COLLECTIONS_FETCHED, result);
-    }
-
-    @PatchMapping("/{missionId}")
-    @Operation(
-            summary = "웰니스 미션 수정",
-            description = "사용자가 자신의 페이스에 맞춰 빈도(frequencyCount), 지속 시간(durationValue), 난이도(difficulty)를 조정합니다. 보낸 필드만 반영됩니다."
-    )
-    public ApiResponse<WellnessMissionResDTO.MissionItem> update(
-            @AuthenticationPrincipal CustomPrincipal principal,
-            @Parameter(description = "수정할 미션 ID") @PathVariable Long missionId,
-            @Valid @RequestBody WellnessMissionReqDTO.Update req
-    ) {
-        WellnessMissionResDTO.MissionItem result = wellnessMissionCommandService.update(
-                principal.getUserId(), missionId, req
-        );
-        return ApiResponse.onSuccess(WellnessMissionSuccessCode.WELLNESS_MISSION_UPDATED, result);
     }
 
     @PostMapping("/{missionId}/complete")

@@ -1,12 +1,14 @@
 package com.capstone.fertility.domain.home.dto.res;
 
+import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResDTO;
 import lombok.Builder;
 
 import java.util.List;
 
 /**
  * 홈 화면 조회 API 응답.
- * 현재는 user만 채우고, recentTest / todayMissions / unreadNotiCount는 추후 연동.
+ * user(닉네임/레벨/EXP)와 todayMissions(최신 검사 기준 오늘의 미션 3개)를 채워준다.
+ * recentTest / unreadNotiCount는 추후 연동.
  * actions: 검사하기, 내 몸상태 조회, 행동 가이드 카드용 형태만 제공(연동 없음).
  */
 public class HomeResDTO {
@@ -15,7 +17,7 @@ public class HomeResDTO {
     public record HomeDTO(
             UserSummary user,
             Object recentTest,
-            List<?> todayMissions,
+            List<WellnessMissionResDTO.MissionItem> todayMissions,
             int unreadNotiCount,
             List<ActionCard> actions
     ) {}

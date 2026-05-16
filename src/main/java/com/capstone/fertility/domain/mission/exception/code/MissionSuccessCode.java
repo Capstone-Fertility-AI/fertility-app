@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum MissionSuccessCode implements BaseSuccessCode {
 
-    MISSION_COMPLETED(HttpStatus.OK, "MISSION200_1", "미션을 완료 처리했습니다."),
     SPROUT_CYCLE_RESET(HttpStatus.OK, "MISSION200_4", "재검사 후 새싹 성장이 Lv.1부터 다시 시작되었습니다.");
 
     private final HttpStatus status;

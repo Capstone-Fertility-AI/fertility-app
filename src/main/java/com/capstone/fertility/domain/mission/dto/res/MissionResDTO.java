@@ -8,23 +8,6 @@ import java.util.List;
 public class MissionResDTO {
 
     @Builder
-    public record MissionCompleteDTO(
-            @Schema(description = "이번 요청에서 실제로 반영된 경험치 증가분. 재완료 요청 시 0.")
-            int expGained,
-            int currentExp,
-            @Schema(description = "현재 레벨")
-            int currentLevel,
-            @Schema(description = "현재 레벨에서 다음 레벨로 가는 데 필요한 EXP. Lv.5(최대)이면 0.")
-            int requiredExpForCurrentLevel,
-            @Schema(description = "이번 요청으로 레벨이 올랐는지 여부")
-            boolean isLevelUp,
-            @Schema(description = "이미 완료된 미션 재요청이면 true. 보상 exp가 0인 미션과 구분할 때 사용.")
-            boolean alreadyCompleted,
-            @Schema(description = "이번 레벨업으로 자동 획득한 꽃 도감(Lv.5 도달 시). 없으면 null.", nullable = true)
-            String newFlower
-    ) {}
-
-    @Builder
     public record MissionHistoryItemDTO(
             @Schema(description = "이벤트 발생 시각(ISO-8601 로컬)", example = "2026-05-07T14:30:00")
             String date,
@@ -43,7 +26,7 @@ public class MissionResDTO {
 
     @Builder
     public record FlowerCollectionItemDTO(
-            @Schema(description = "꽃 종류 코드", example = "PEONY")
+            @Schema(description = "꽃 종류 코드(PEONY / BABYS_BREATH / LOTUS 중 하나)", example = "PEONY")
             String flowerType,
             @Schema(description = "획득(최종 진화) 시각 ISO-8601", example = "2026-05-01T10:00:00")
             String achievedAt
