@@ -232,13 +232,14 @@ ALTER TABLE "Users"
 ```
 
 - **위 `ALTER`**: 운영에서 `spring.jpa.hibernate.ddl-auto`가 **`validate`(또는 none)** 이면 **반드시** 실행해야 합니다. 안 하면 새 버전 부팅 시 스키마 불일치로 실패할 수 있습니다. 로컬에서 `update`만 쓰는 경우는 부팅 시 자동 반영되는 경우가 많습니다.
-- **아래 꽃 `UPDATE`**: `user_flower_collections`에 **이미 행이 있고**, `flower_type`이 `PEONY`가 아닌 문자열이 남아 있을 때만 필요합니다. **테이블이 비었거나 처음부터 PEONY만 쓰면 생략**해도 됩니다.
+- **아래 꽃 `UPDATE`**: `user_flower_collections`에 **이미 행이 있고**, `flower_type`이 후보 풀(`PEONY` / `BABYS_BREATH` / `LOTUS`)에 없는 문자열이 남아 있을 때만 필요합니다. **테이블이 비었거나 처음부터 후보 풀의 값만 쓰면 생략**해도 됩니다.
 
-꽃은 현재 **PEONY 1종**만 사용합니다. DB에 다른 `flower_type` 문자열이 남아 있으면 앱이 읽지 못할 수 있으니, 필요 시 아래로 통일합니다.
+꽃은 **3종**(`PEONY`, `BABYS_BREATH`, `LOTUS`)을 후보 풀로 사용하며, Lv.5 도달 시 보유하지 않은 종 중 1개를 랜덤 지급합니다. DB에 후보 풀 외의 `flower_type` 문자열이 남아 있으면 앱이 읽지 못할 수 있으니, 필요 시 아래로 통일합니다.
 
 ```sql
 UPDATE user_flower_collections SET flower_type = 'PEONY'
-WHERE flower_type IS NOT NULL AND flower_type <> 'PEONY';
+WHERE flower_type IS NOT NULL
+  AND flower_type NOT IN ('PEONY', 'BABYS_BREATH', 'LOTUS');
 ```
 
 ### AI 서버(FastAPI) 변경 사항

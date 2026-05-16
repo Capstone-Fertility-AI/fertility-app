@@ -11,7 +11,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 미션 완료/페널티 등으로 인한 경험치 보상을 일관되게 처리하는 도메인 서비스.
@@ -21,8 +25,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MissionRewardService {
 
-    /** 현재는 단일 꽃만 지급. 확장 시 후보 풀·랜덤 로직 추가. */
-    private static final FlowerType FINAL_FLOWER = FlowerType.PEONY;
+    /** Lv.5 도달 시 후보가 되는 꽃 풀(3종). 미보유 종 중 1개를 랜덤 지급한다. */
+    private static final Set<FlowerType> FLOWER_POOL = EnumSet.of(
+            FlowerType.PEONY,
+            FlowerType.BABYS_BREATH,
+            FlowerType.LOTUS
+    );
 
     private final MissionSproutLogRepository missionSproutLogRepository;
     private final UserFlowerCollectionRepository userFlowerCollectionRepository;
@@ -69,20 +77,32 @@ public class MissionRewardService {
     }
 
     /**
-     * Lv.5 도달 시 단일 꽃(PEONY) 1회 지급. 이미 도감에 있으면 null(멱등).
+     * Lv.5 도달 시 후보 풀에서 사용자가 보유하지 않은 꽃 1종을 랜덤 지급한다.
+     * 후보를 모두 보유 중이면 지급 스킵(null).
      */
     private FlowerType tryAwardFlower(User user) {
         List<UserFlowerCollection> owned = userFlowerCollectionRepository.findByUser_IdOrderByAchievedAtDesc(user.getId());
+        EnumSet<FlowerType> ownedSet = EnumSet.noneOf(FlowerType.class);
         for (UserFlowerCollection c : owned) {
-            if (c.getFlowerType() == FINAL_FLOWER) {
-                return null;
+            ownedSet.add(c.getFlowerType());
+        }
+
+        List<FlowerType> candidates = new ArrayList<>();
+        for (FlowerType type : FLOWER_POOL) {
+            if (!ownedSet.contains(type)) {
+                candidates.add(type);
             }
         }
+        if (candidates.isEmpty()) {
+            return null;
+        }
+
+        FlowerType picked = candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
         userFlowerCollectionRepository.save(UserFlowerCollection.builder()
                 .user(user)
-                .flowerType(FINAL_FLOWER)
+                .flowerType(picked)
                 .achievedAt(LocalDateTime.now())
                 .build());
-        return FINAL_FLOWER;
+        return picked;
     }
 }

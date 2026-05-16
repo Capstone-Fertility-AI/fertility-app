@@ -5,6 +5,8 @@ import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
 import com.capstone.fertility.domain.user.repository.UserRepository;
+import com.capstone.fertility.domain.wellnessmission.dto.res.WellnessMissionResDTO;
+import com.capstone.fertility.domain.wellnessmission.service.query.WellnessMissionQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,12 +15,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class HomeQueryServiceImpl implements HomeQueryService {
 
     private final UserRepository userRepository;
+    private final WellnessMissionQueryService wellnessMissionQueryService;
 
     @Override
+    @Transactional
     public HomeResDTO.HomeDTO getHome(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
@@ -28,6 +31,10 @@ public class HomeQueryServiceImpl implements HomeQueryService {
                 .level(user.getCurrentLevel())
                 .exp(user.getCurrentExp())
                 .build();
+
+        WellnessMissionResDTO.MyMissions today = wellnessMissionQueryService.getTodayMissions(userId);
+        List<WellnessMissionResDTO.MissionItem> todayMissions =
+                today != null && today.missions() != null ? today.missions() : List.of();
 
         List<HomeResDTO.ActionCard> actions = List.of(
                 HomeResDTO.ActionCard.builder().type("TEST").title("검사하기").build(),
@@ -39,7 +46,7 @@ public class HomeQueryServiceImpl implements HomeQueryService {
         return HomeResDTO.HomeDTO.builder()
                 .user(userSummary)
                 .recentTest(null)
-                .todayMissions(List.of())
+                .todayMissions(todayMissions)
                 .unreadNotiCount(0)
                 .actions(actions)
                 .build();

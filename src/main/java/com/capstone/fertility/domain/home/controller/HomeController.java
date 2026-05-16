@@ -20,7 +20,7 @@ public class HomeController {
     private final HomeQueryService homeQueryService;
 
     @GetMapping
-    @Operation(summary = "홈 화면 조회", description = "로그인 사용자의 홈 데이터를 반환합니다. 현재는 user(nickname, level, exp)만 채우고, recentTest/todayMissions/unreadNotiCount는 추후 연동 예정입니다.")
+    @Operation(summary = "홈 화면 조회", description = "로그인 사용자의 홈 데이터를 반환합니다. user(nickname, level, exp)와 todayMissions(최신 검사 기준 오늘의 미션 3개)를 채워주며, recentTest/unreadNotiCount는 추후 연동 예정입니다.")
     public ApiResponse<HomeResDTO.HomeDTO> getHome(
             @AuthenticationPrincipal CustomPrincipal principal
     ) {
