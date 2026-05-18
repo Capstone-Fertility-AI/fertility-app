@@ -24,7 +24,7 @@ public class HomeQueryServiceImpl implements HomeQueryService {
     private final TestResultRepository testResultRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public HomeResDTO.HomeDTO getHome(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
