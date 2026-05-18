@@ -1,6 +1,8 @@
 package com.capstone.fertility.domain.home.service;
 
 import com.capstone.fertility.domain.home.dto.res.HomeResDTO;
+import com.capstone.fertility.domain.result.entity.TestResult;
+import com.capstone.fertility.domain.result.repository.TestResultRepository;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
@@ -19,9 +21,10 @@ public class HomeQueryServiceImpl implements HomeQueryService {
 
     private final UserRepository userRepository;
     private final WellnessMissionQueryService wellnessMissionQueryService;
+    private final TestResultRepository testResultRepository;
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public HomeResDTO.HomeDTO getHome(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
@@ -31,6 +34,12 @@ public class HomeQueryServiceImpl implements HomeQueryService {
                 .level(user.getCurrentLevel())
                 .exp(user.getCurrentExp())
                 .build();
+
+        // 최근 검사 결과 카드 (LLM 호출 없이 DB 값만 사용 → 홈 즉시 응답)
+        HomeResDTO.RecentTest recentTest = testResultRepository
+                .findFirstByUser_IdOrderByCreatedAtDesc(userId)
+                .map(this::toRecentTestCard)
+                .orElse(null);
 
         WellnessMissionResDTO.MyMissions today = wellnessMissionQueryService.getTodayMissions(userId);
         List<WellnessMissionResDTO.MissionItem> todayMissions =
@@ -45,10 +54,20 @@ public class HomeQueryServiceImpl implements HomeQueryService {
 
         return HomeResDTO.HomeDTO.builder()
                 .user(userSummary)
-                .recentTest(null)
+                .recentTest(recentTest)
                 .todayMissions(todayMissions)
                 .unreadNotiCount(0)
                 .actions(actions)
+                .build();
+    }
+
+    private HomeResDTO.RecentTest toRecentTestCard(TestResult r) {
+        return HomeResDTO.RecentTest.builder()
+                .resultId(r.getId())
+                .score(r.getAiScore())
+                .riskLevel(r.getRiskLevel() != null ? r.getRiskLevel().name() : null)
+                .topFactors(r.getTopFactors())
+                .createdAt(r.getCreatedAt())
                 .build();
     }
 }

@@ -13,6 +13,9 @@ public interface TestResultRepository extends JpaRepository<TestResult, Long> {
 
     Optional<TestResult> findByTestSession_Id(Long sessionId);
 
+    /** 홈 카드용: 사용자의 가장 최근 검사 결과 1건. */
+    Optional<TestResult> findFirstByUser_IdOrderByCreatedAtDesc(Long userId);
+
     /**
      * 히스토리 조회(연/월 단위).
      * - userId 기준

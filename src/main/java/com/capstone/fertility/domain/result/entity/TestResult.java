@@ -56,4 +56,12 @@ public class TestResult extends BaseEntity {
 
     @Column(name = "medical_evidence", columnDefinition = "TEXT")
     private String medicalEvidence;
+
+    /**
+     * 최초 호출에서 받아온 LLM 리포트 JSON 원문을 저장한다.
+     * 이후 동일 result 조회 시 LLM 재호출 없이 이 값을 그대로 파싱해 응답한다.
+     */
+    public void assignLlmReport(String json) {
+        this.llmAdvice = json;
+    }
 }
