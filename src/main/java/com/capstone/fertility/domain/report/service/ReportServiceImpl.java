@@ -57,17 +57,38 @@ public class ReportServiceImpl implements ReportService {
         User user = result.getUser();
         TestSession session = result.getTestSession();
 
-        String userPrompt = buildUserPrompt(user, session, result);
-
-        String llmJson;
-        try {
-            llmJson = llmClient.chatJson(ReportSystemPrompt.SYSTEM_INSTRUCTION, userPrompt);
-        } catch (Exception e) {
-            log.error("LLM API 호출 실패: resultId={}", resultId, e);
-            throw new ReportException(ReportErrorCode.LLM_API_FAILED);
+        // 캐시 우선: 같은 resultId 로 이전에 받아둔 LLM JSON 이 있으면 LLM 호출을 스킵한다.
+        // 캐시된 본문 파싱이 실패하는 경우에만 안전하게 LLM 을 재호출한다.
+        String cachedLlmJson = result.getLlmAdvice();
+        ParsedReport parsed = null;
+        boolean usedCache = false;
+        if (cachedLlmJson != null && !cachedLlmJson.isBlank()) {
+            try {
+                parsed = parseLlmJson(cachedLlmJson);
+                usedCache = true;
+            } catch (Exception cacheParseError) {
+                log.warn("캐시된 LLM JSON 파싱 실패. 재호출로 폴백합니다. resultId={}", resultId);
+                parsed = null;
+            }
         }
 
-        ParsedReport parsed = parseLlmJson(llmJson);
+        if (parsed == null) {
+            String userPrompt = buildUserPrompt(user, session, result);
+            String llmJson;
+            try {
+                llmJson = llmClient.chatJson(ReportSystemPrompt.SYSTEM_INSTRUCTION, userPrompt);
+            } catch (Exception e) {
+                log.error("LLM API 호출 실패: resultId={}", resultId, e);
+                throw new ReportException(ReportErrorCode.LLM_API_FAILED);
+            }
+            parsed = parseLlmJson(llmJson);
+            // dirty checking 으로 다음 호출부터 캐시 히트
+            result.assignLlmReport(llmJson);
+        }
+
+        if (usedCache) {
+            log.debug("LLM 캐시 히트: resultId={}", resultId);
+        }
 
         // 같은 resultId로 이전에 저장된 미션이 있으면 재사용, 없으면 새로 저장
         List<WellnessMission> persistedMissions = wellnessMissionRepository.existsByTestResultId(resultId)
