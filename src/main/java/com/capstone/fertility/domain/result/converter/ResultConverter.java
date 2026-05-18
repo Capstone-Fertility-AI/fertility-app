@@ -19,8 +19,6 @@ public final class ResultConverter {
                 .topFactors(entity.getTopFactors() != null
                         ? entity.getTopFactors()
                         : Collections.emptyList())
-                .llmAdvice(entity.getLlmAdvice())
-                .medicalEvidence(entity.getMedicalEvidence())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

@@ -36,7 +36,12 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
-        User newUser = UserConverter.toLocalUser(request.email(), encodedPassword, request.nickname());
+        User newUser = UserConverter.toLocalUser(
+                request.email(),
+                encodedPassword,
+                request.nickname(),
+                Boolean.TRUE.equals(request.isTermsAgreed())
+        );
         User savedUser = userRepository.save(newUser);
 
         String accessToken = jwtTokenProvider.createToken(savedUser.getId(), Role.USER);

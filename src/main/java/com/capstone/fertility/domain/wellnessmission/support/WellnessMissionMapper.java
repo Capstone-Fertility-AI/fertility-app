@@ -29,18 +29,28 @@ public final class WellnessMissionMapper {
                         .count(e.getFrequencyCount())
                         .unit(e.getFrequencyUnit())
                         .build())
-                .duration(WellnessMissionResDTO.Duration.builder()
-                        .value(e.getDurationValue())
-                        .unit(e.getDurationUnit())
-                        .build())
+                .duration(buildDuration(e.getDurationValue(), e.getDurationUnit()))
                 .difficulty(e.getDifficulty() != null ? e.getDifficulty().name() : null)
                 .userAdjustable(e.isUserAdjustable())
                 .userAdjusted(e.isUserAdjusted())
                 .completed(completed)
                 .completedAt(completedAtOverride)
-                .servingLocalDate(e.getServingLocalDate() != null ? e.getServingLocalDate().toString() : null)
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
+                .build();
+    }
+
+    /**
+     * value가 null 이거나 0 이하이면 duration 자체를 null 로 반환한다.
+     * (시간 개념이 없는 미션이 0/없음으로 저장된 경우 클라이언트에 의미 없는 0을 내려보내지 않기 위함)
+     */
+    private static WellnessMissionResDTO.Duration buildDuration(Integer value, String unit) {
+        if (value == null || value <= 0) {
+            return null;
+        }
+        return WellnessMissionResDTO.Duration.builder()
+                .value(value)
+                .unit(unit)
                 .build();
     }
 }

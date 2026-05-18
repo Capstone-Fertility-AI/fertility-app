@@ -1,7 +1,9 @@
 package com.capstone.fertility.domain.user.dto.req;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +11,8 @@ import lombok.NoArgsConstructor;
 public class UserReqDTO {
 
     /**
-     * 회원가입을 위한 요청 DTO
+     * 회원가입을 위한 요청 DTO.
+     * <p>isTermsAgreed 는 필수이며 반드시 true 여야 한다. (약관 미동의 가입 차단)</p>
      */
     public record SignUpReqDTO(
             @NotBlank(message = "이메일은 필수 입력 값입니다.")
@@ -22,7 +25,11 @@ public class UserReqDTO {
 
             @NotBlank(message = "닉네임은 필수 입력 값입니다.")
             @Size(min = 2, max = 10, message = "닉네임은 2자 이상 10자 이하로 입력해주세요.")
-            String nickname
+            String nickname,
+
+            @NotNull(message = "약관 동의 여부(isTermsAgreed)는 필수입니다.")
+            @AssertTrue(message = "약관에 동의해야 회원가입할 수 있습니다.")
+            Boolean isTermsAgreed
     ) {}
 
     /**

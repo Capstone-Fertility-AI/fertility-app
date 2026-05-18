@@ -21,8 +21,6 @@ public class ResultResDTO {
                     example = "[\"흡연\", \"수면 부족\"]"
             )
             List<String> topFactors,
-            String llmAdvice,
-            String medicalEvidence,
             LocalDateTime createdAt
     ) {}
 
