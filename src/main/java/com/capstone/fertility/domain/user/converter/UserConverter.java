@@ -24,13 +24,13 @@ public class UserConverter {
                 .build();
     }
 
-    public static User toLocalUser(String email, String encodedPassword, String nickname) {
+    public static User toLocalUser(String email, String encodedPassword, String nickname, boolean isTermsAgreed) {
         return User.builder()
                 .email(email)
                 .password(encodedPassword)
                 .nickname(nickname)
                 .loginType(LoginType.LOCAL)
-                .isTermsAgreed(false)
+                .isTermsAgreed(isTermsAgreed)
                 .build();
     }
 }

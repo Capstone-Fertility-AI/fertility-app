@@ -22,7 +22,6 @@ public class WellnessMissionResDTO {
             Boolean userAdjusted,
             Boolean completed,
             LocalDateTime completedAt,
-            String servingLocalDate,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {}

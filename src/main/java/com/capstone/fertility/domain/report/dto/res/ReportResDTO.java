@@ -57,8 +57,7 @@ public class ReportResDTO {
             Frequency frequency,
             Duration duration,
             String difficulty,
-            Boolean userAdjustable,
-            String servingLocalDate
+            Boolean userAdjustable
     ) {}
 
     @Builder

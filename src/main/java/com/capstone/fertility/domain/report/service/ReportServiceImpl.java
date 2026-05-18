@@ -135,7 +135,6 @@ public class ReportServiceImpl implements ReportService {
                     .difficulty(Difficulty.parseOrMedium(m.difficulty()))
                     .userAdjustable(m.userAdjustable() == null || m.userAdjustable())
                     .userAdjusted(false)
-                    .servingLocalDate(null)
                     .build();
             entities.add(entity);
         }
@@ -160,7 +159,6 @@ public class ReportServiceImpl implements ReportService {
                         .build())
                 .difficulty(e.getDifficulty() != null ? e.getDifficulty().name() : null)
                 .userAdjustable(e.isUserAdjustable())
-                .servingLocalDate(e.getServingLocalDate() != null ? e.getServingLocalDate().toString() : null)
                 .build();
     }
 
@@ -259,7 +257,6 @@ public class ReportServiceImpl implements ReportService {
                     .duration(parseDuration(item.path("duration")))
                     .difficulty(asText(item.path("difficulty")))
                     .userAdjustable(item.path("userAdjustable").asBoolean(true))
-                    .servingLocalDate(null)
                     .build());
         }
         return out;
