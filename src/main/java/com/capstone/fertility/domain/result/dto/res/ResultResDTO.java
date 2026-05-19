@@ -21,7 +21,9 @@ public class ResultResDTO {
                     example = "[\"흡연\", \"수면 부족\"]"
             )
             List<String> topFactors,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            /** 검사일(보관함·달력). createdAt과 동일 시각 */
+            LocalDateTime inspectedAt
     ) {}
 
     /**

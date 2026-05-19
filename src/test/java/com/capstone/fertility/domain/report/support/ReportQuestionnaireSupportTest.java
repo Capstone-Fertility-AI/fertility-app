@@ -14,68 +14,59 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ReportQuestionnaireSupportTest {
 
     @Test
-    void buildFrom_maleSession_mapsKoreanLabels() {
+    void buildFrom_maleSession_splitsBodyAndLifestyleGroups() {
         TestSession session = TestSession.builder()
                 .gender(Gender.M)
+                .age(32)
                 .height(175.0)
-                .weight(72.5)
-                .smokeStatus("가끔 피움")
-                .drinkStatus("월 1~3회")
-                .build();
-
-        Map<String, String> rows = rowMap(ReportQuestionnaireSupport.buildFrom(session));
-
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_HEIGHT, "175 cm");
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_WEIGHT, "72.5 kg");
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "가끔 피움");
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, "월 1~3회");
-    }
-
-    @Test
-    void buildFrom_maleSession_mapsMonthlyDrinkEnumToKorean() {
-        TestSession session = TestSession.builder()
-                .gender(Gender.M)
-                .drinkStatus("MONTHLY_1_TO_3")
-                .build();
-
-        Map<String, String> rows = rowMap(ReportQuestionnaireSupport.buildFrom(session));
-
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, "월 1~3회");
-    }
-
-    @Test
-    void buildFrom_maleSession_mapsFrontendSmokeAndDrinkApiCodes() {
-        TestSession session = TestSession.builder()
-                .gender(Gender.M)
+                .weight(70.0)
                 .smokeStatus("OCCASIONAL")
-                .drinkStatus("WEEKLY_OR_MORE")
+                .drinkStatus("MONTHLY_1_TO_3")
+                .sleepHours(6)
+                .sleepMinutes(12)
                 .build();
 
-        Map<String, String> rows = rowMap(ReportQuestionnaireSupport.buildFrom(session));
+        Map<String, Map<String, String>> groups = groupMap(ReportQuestionnaireSupport.buildFrom(session));
 
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "가끔 피움");
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, "주 1회 이상");
+        assertThat(groups).containsKey(ReportQuestionnaireSupport.GROUP_BODY);
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_BODY))
+                .containsEntry(ReportQuestionnaireSupport.LABEL_AGE, "32세")
+                .containsEntry(ReportQuestionnaireSupport.LABEL_HEIGHT, "175cm")
+                .containsEntry(ReportQuestionnaireSupport.LABEL_WEIGHT, "70kg");
+
+        assertThat(groups).containsKey(ReportQuestionnaireSupport.GROUP_LIFESTYLE);
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
+                .containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "가끔")
+                .containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, "월 1~3회")
+                .containsEntry(ReportQuestionnaireSupport.LABEL_SLEEP, "6시간 12분");
     }
 
     @Test
-    void buildFrom_femaleSession_mapsSmokeLevelToLabel() {
+    void buildFrom_femaleSession_mapsSmokeLevelToShortLabel() {
         TestSession session = TestSession.builder()
                 .gender(Gender.F)
+                .age(28)
                 .height(162.0)
                 .weight(55.0)
                 .smokeLevel(2)
                 .build();
 
-        Map<String, String> rows = rowMap(ReportQuestionnaireSupport.buildFrom(session));
+        Map<String, Map<String, String>> groups = groupMap(ReportQuestionnaireSupport.buildFrom(session));
 
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_HEIGHT, "162 cm");
-        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "매일 피움");
-        assertThat(rows).doesNotContainKey(ReportQuestionnaireSupport.LABEL_DRINK);
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
+                .containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "매일");
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
+                .doesNotContainKey(ReportQuestionnaireSupport.LABEL_DRINK);
     }
 
-    private static Map<String, String> rowMap(List<ReportResDTO.QuestionnaireGroup> groups) {
+    private static Map<String, Map<String, String>> groupMap(List<ReportResDTO.QuestionnaireGroup> groups) {
         return groups.stream()
-                .flatMap(g -> g.rows().stream())
-                .collect(Collectors.toMap(ReportResDTO.QuestionnaireRow::label, ReportResDTO.QuestionnaireRow::value));
+                .collect(Collectors.toMap(
+                        ReportResDTO.QuestionnaireGroup::title,
+                        g -> g.rows().stream()
+                                .collect(Collectors.toMap(
+                                        ReportResDTO.QuestionnaireRow::label,
+                                        ReportResDTO.QuestionnaireRow::value))
+                ));
     }
 }

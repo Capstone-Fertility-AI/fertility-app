@@ -23,8 +23,10 @@ public class ReportResDTO {
             List<FactorAnalysis> factorAnalyses,
             List<Mission> missions,
             String closing,
-            /** 프론트 상세 리포트 설문 요약(키·몸무게·흡연·음주 등). rows[].label / value */
-            List<QuestionnaireGroup> questionnaireGroups
+            /** 프론트 상세 리포트 설문 요약(신체·생활습관). rows[].label / value */
+            List<QuestionnaireGroup> questionnaireGroups,
+            /** 동일 연령·성별 대비 표. item: BMI, 수면시간 등 */
+            List<ComparisonRow> comparisonTable
     ) {}
 
     @Builder
@@ -37,6 +39,16 @@ public class ReportResDTO {
     public record QuestionnaireRow(
             String label,
             String value
+    ) {}
+
+    @Builder
+    public record ComparisonRow(
+            String item,
+            String myValue,
+            String averageValue,
+            String comparisonResult,
+            /** higher | lower | neutral */
+            String trend
     ) {}
 
     @Builder

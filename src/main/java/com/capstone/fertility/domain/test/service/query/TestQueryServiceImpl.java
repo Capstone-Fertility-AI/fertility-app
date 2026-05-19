@@ -9,6 +9,7 @@ import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.test.exception.TestException;
 import com.capstone.fertility.domain.test.exception.code.TestErrorCode;
 import com.capstone.fertility.domain.test.repository.TestSessionRepository;
+import com.capstone.fertility.domain.test.support.HealthBenchmarkSupport;
 import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.user.enums.Gender;
 import lombok.RequiredArgsConstructor;
@@ -65,17 +66,6 @@ public class TestQueryServiceImpl implements TestQueryService {
             3.22, 2.83, 3.14, 2.97, 2.02, 1.29, 0.74, 0.41, 0.26
     };
 
-    /**
-     * 만 20~69세·성별 평균 BMI(10년 단위). 순서: 20~29, 30~39, 40~49, 50~59, 60~69.
-     * {@link #ageDecadeIndex(int)}와 동일 인덱스.
-     */
-    private static final Double[] AGE_DECADE_MEAN_BMI_MALE = {
-            24.08, 25.68, 25.70, 25.11, 24.89
-    };
-    private static final Double[] AGE_DECADE_MEAN_BMI_FEMALE = {
-            21.54, 21.94, 23.13, 23.55, 24.02
-    };
-
     private final TestSessionRepository testSessionRepository;
     private final TestResultRepository testResultRepository;
 
@@ -121,11 +111,13 @@ public class TestQueryServiceImpl implements TestQueryService {
         Double sleepDeltaHours = null;
 
         if (age != null && sleepHours != null && sleepMinutes != null) {
-            AgeBandResult sleepBand = resolveSleepAgeBandAndAvgHours(age);
-            sleepAgeBand = sleepBand.ageBandLabel();
-            sleepAvgHours = round1(sleepBand.avgHours());
-            double userSleepHours = SleepInputSupport.totalSleepHoursDecimal(sleepHours, sleepMinutes);
-            sleepDeltaHours = round1(userSleepHours - sleepAvgHours);
+            HealthBenchmarkSupport.SleepPeerBenchmark sleepBand = HealthBenchmarkSupport.sleepPeerBenchmark(age);
+            if (sleepBand != null) {
+                sleepAgeBand = sleepBand.ageBandLabel();
+                sleepAvgHours = round1(sleepBand.avgHours());
+                double userSleepHours = SleepInputSupport.totalSleepHoursDecimal(sleepHours, sleepMinutes);
+                sleepDeltaHours = round1(userSleepHours - sleepAvgHours);
+            }
         }
 
         boolean obesityCalculated = age != null && gender != null && height != null && weight != null;
@@ -138,10 +130,10 @@ public class TestQueryServiceImpl implements TestQueryService {
         String bmiDistanceDirection = null;
 
         if (age != null && gender != null && height != null && weight != null) {
-            double bmiRaw = calculateBmi(height.doubleValue(), weight.doubleValue());
+            double bmiRaw = HealthBenchmarkSupport.bmi(height.doubleValue(), weight.doubleValue());
             bmi = round1(bmiRaw);
 
-            Double meanBmi = resolveAgeSexMeanBmi(gender, age);
+            Double meanBmi = HealthBenchmarkSupport.meanBmi(gender, age);
             if (meanBmi != null && meanBmi.doubleValue() > 0.0) {
                 ageSexMeanBmi = round1(meanBmi);
                 bmiDeltaVsAgeSexMeanPct = round1((bmiRaw - meanBmi) / meanBmi * 100.0);
@@ -200,34 +192,8 @@ public class TestQueryServiceImpl implements TestQueryService {
                 .build();
     }
 
-    private record AgeBandResult(String ageBandLabel, double avgHours) {}
-
-    /**
-     * 수면 시간 평균 비교용 연령대. 만 20~59세는 10년 단위 라벨, 만 60세 이상은 "60대 이상"·동일 평균 시간.
-     */
-    private AgeBandResult resolveSleepAgeBandAndAvgHours(int age) {
-        if (age >= 20 && age <= 29) {
-            return new AgeBandResult("20대", 8.0 + 17.0 / 60.0);
-        }
-        if (age >= 30 && age <= 39) {
-            return new AgeBandResult("30대", 8.0 + 7.0 / 60.0);
-        }
-        if (age >= 40 && age <= 49) {
-            return new AgeBandResult("40대", 7.0 + 54.0 / 60.0);
-        }
-        if (age >= 50 && age <= 59) {
-            return new AgeBandResult("50대", 7.0 + 42.0 / 60.0);
-        }
-        return new AgeBandResult("60대 이상", 8.0 + 5.0 / 60.0);
-    }
-
-    private double calculateBmi(double height, double weightKg) {
-        double heightM = height / 100.0;
-        return weightKg / (heightM * heightM);
-    }
-
     private double round1(double value) {
-        return Math.round(value * 10.0) / 10.0;
+        return HealthBenchmarkSupport.round1(value);
     }
 
     /**
@@ -249,23 +215,6 @@ public class TestQueryServiceImpl implements TestQueryService {
      */
     private Double resolveObesityStage3PrevalencePct(Gender gender, int age) {
         return lookupObesityPrevalenceByStage(gender, age, OBESITY_STAGE3_FEMALE, OBESITY_STAGE3_MALE);
-    }
-
-    /**
-     * 만 20~69세·성별 평균 BMI(10년 단위 표). 만 20 미만·70 이상이면 null.
-     */
-    private static Double resolveAgeSexMeanBmi(Gender gender, int age) {
-        int idx = ageDecadeIndex(age);
-        if (idx < 0) {
-            return null;
-        }
-        if (gender == Gender.F) {
-            return valueAtAgeDecadeBand(AGE_DECADE_MEAN_BMI_FEMALE, idx);
-        }
-        if (gender == Gender.M) {
-            return valueAtAgeDecadeBand(AGE_DECADE_MEAN_BMI_MALE, idx);
-        }
-        return null;
     }
 
     /**
@@ -314,20 +263,4 @@ public class TestQueryServiceImpl implements TestQueryService {
         return row[idx];
     }
 
-    /** 만 20~69세만 0~4, 그 외 -1 */
-    private static int ageDecadeIndex(int age) {
-        if (age >= 20 && age <= 29) return 0;
-        if (age >= 30 && age <= 39) return 1;
-        if (age >= 40 && age <= 49) return 2;
-        if (age >= 50 && age <= 59) return 3;
-        if (age >= 60 && age <= 69) return 4;
-        return -1;
-    }
-
-    private static Double valueAtAgeDecadeBand(Double[] row, int idx) {
-        if (row == null || idx < 0 || idx >= row.length) {
-            return null;
-        }
-        return row[idx];
-    }
 }

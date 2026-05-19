@@ -20,6 +20,7 @@ public final class ResultConverter {
                         ? entity.getTopFactors()
                         : Collections.emptyList())
                 .createdAt(entity.getCreatedAt())
+                .inspectedAt(entity.getCreatedAt())
                 .build();
     }
 }
