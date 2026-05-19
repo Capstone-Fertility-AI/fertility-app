@@ -80,16 +80,7 @@ public final class ReportQuestionnaireSupport {
     }
 
     private static String formatMaleSmokeLabel(String smokeStatus) {
-        if (smokeStatus == null || smokeStatus.isBlank()) {
-            return null;
-        }
-        String v = smokeStatus.trim();
-        return switch (v) {
-            case "NONE", "안 피움" -> "안 피움";
-            case "SOMETIMES", "가끔 피움" -> "가끔 피움";
-            case "DAILY", "매일 피움" -> "매일 피움";
-            default -> v;
-        };
+        return AiLifestyleCategoryMapper.toSmokeDisplayLabel(smokeStatus);
     }
 
     private static String formatFemaleSmokeLabel(Integer smokeLevel) {
@@ -105,15 +96,6 @@ public final class ReportQuestionnaireSupport {
     }
 
     private static String formatDrink(String drinkStatus) {
-        if (drinkStatus == null || drinkStatus.isBlank()) {
-            return null;
-        }
-        String v = drinkStatus.trim();
-        return switch (v) {
-            case "NONE", "안 마심" -> "안 마심";
-            case "SOMETIMES", "월 1~3회" -> "월 1~3회";
-            case "WEEKLY", "주 1회 이상" -> "주 1회 이상";
-            default -> v;
-        };
+        return AiLifestyleCategoryMapper.toDrinkDisplayLabel(drinkStatus);
     }
 }

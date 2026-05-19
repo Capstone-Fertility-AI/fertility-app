@@ -32,6 +32,32 @@ class ReportQuestionnaireSupportTest {
     }
 
     @Test
+    void buildFrom_maleSession_mapsMonthlyDrinkEnumToKorean() {
+        TestSession session = TestSession.builder()
+                .gender(Gender.M)
+                .drinkStatus("MONTHLY_1_TO_3")
+                .build();
+
+        Map<String, String> rows = rowMap(ReportQuestionnaireSupport.buildFrom(session));
+
+        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, "월 1~3회");
+    }
+
+    @Test
+    void buildFrom_maleSession_mapsFrontendSmokeAndDrinkApiCodes() {
+        TestSession session = TestSession.builder()
+                .gender(Gender.M)
+                .smokeStatus("OCCASIONAL")
+                .drinkStatus("WEEKLY_OR_MORE")
+                .build();
+
+        Map<String, String> rows = rowMap(ReportQuestionnaireSupport.buildFrom(session));
+
+        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "가끔 피움");
+        assertThat(rows).containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, "주 1회 이상");
+    }
+
+    @Test
     void buildFrom_femaleSession_mapsSmokeLevelToLabel() {
         TestSession session = TestSession.builder()
                 .gender(Gender.F)

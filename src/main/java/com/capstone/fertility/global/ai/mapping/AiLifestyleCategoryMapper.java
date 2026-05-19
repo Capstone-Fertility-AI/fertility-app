@@ -1,65 +1,107 @@
 package com.capstone.fertility.global.ai.mapping;
 
 /**
- * 프론트엔드 한국어 범주 문자열(또는 여성용 정수 단계)을
- * Python AI 서버가 기대하는 0~2 정수 스케일로 변환합니다.
+ * 프론트 설문 API 코드(NEVER, MONTHLY_1_TO_3 등) 및 한국어 라벨을
+ * AI 0~2 스케일·리포트 표시용 한글로 변환합니다.
  * <p>
- * 스케일 의미: 0 = 가장 양호(비노출/없음), 1 = 중간, 2 = 가장 높은 노출/빈도
+ * 프론트 전송 규약: {@code toApiSmokeStatus}, {@code toApiDrinkStatus}, {@code toApiBingeStatus}
+ * <ul>
+ *   <li>흡연: NEVER | OCCASIONAL | DAILY</li>
+ *   <li>음주: NEVER | MONTHLY_1_TO_3 | WEEKLY_OR_MORE</li>
+ *   <li>폭음: NEVER | MONTHLY_1 | WEEKLY_OR_MORE</li>
+ * </ul>
  */
 public final class AiLifestyleCategoryMapper {
 
     private AiLifestyleCategoryMapper() {
     }
 
-    /**
-     * 흡연 (smokeStatus → SMOKE30 / smoke_amount 등에 대응)
-     * "안 피움"→0, "가끔 피움"→1, "매일 피움"→2
-     */
+    /** 흡연 표시용 한글 라벨 */
+    public static String toSmokeDisplayLabel(String smokeStatus) {
+        if (smokeStatus == null || smokeStatus.isBlank()) {
+            return null;
+        }
+        return switch (normalizeToken(smokeStatus)) {
+            case "NEVER", "NONE" -> "안 피움";
+            case "OCCASIONAL", "OCCASIONALLY", "SOMETIMES" -> "가끔 피움";
+            case "DAILY" -> "매일 피움";
+            case "안 피움" -> "안 피움";
+            case "가끔 피움" -> "가끔 피움";
+            case "매일 피움" -> "매일 피움";
+            default -> smokeStatus.trim();
+        };
+    }
+
     public static int mapSmokeStatusToAi(String smokeStatus) {
         if (smokeStatus == null || smokeStatus.isBlank()) {
             return 0;
         }
-        String v = smokeStatus.trim();
-        return switch (v) {
-            case "안 피움" -> 0;
-            case "가끔 피움" -> 1;
-            case "매일 피움" -> 2;
-            default -> 0;
-        };
-    }   
-
-    /**
-     * 음주 (drinkStatus → DRINK12 / drink_freq 등에 대응)
-     * "안 마심"→0, "월 1~3회"→1, "주 1회 이상"→2
-     */
-    public static int mapDrinkStatusToAi(String drinkStatus) {
-        if (drinkStatus == null || drinkStatus.isBlank()) {
-            return 0;
-        }
-        String v = drinkStatus.trim();
-        return switch (v) {
-            case "안 마심" -> 0;
-            case "월 1~3회" -> 1;
-            case "주 1회 이상" -> 2;
+        return switch (normalizeToken(smokeStatus)) {
+            case "NEVER", "NONE", "안 피움" -> 0;
+            case "OCCASIONAL", "OCCASIONALLY", "SOMETIMES", "가끔 피움" -> 1;
+            case "DAILY", "매일 피움" -> 2;
             default -> 0;
         };
     }
 
-    /**
-     * 폭음 (bingeStatus → BINGE12 / binge_freq 등에 대응)
-     * "없음"→0, "월 1회"→1, "주 1회 이상"→2
-     */
+    /** 음주 표시용 한글 라벨 */
+    public static String toDrinkDisplayLabel(String drinkStatus) {
+        if (drinkStatus == null || drinkStatus.isBlank()) {
+            return null;
+        }
+        return switch (normalizeToken(drinkStatus)) {
+            case "NEVER", "NONE" -> "안 마심";
+            case "MONTHLY_1_TO_3", "SOMETIMES" -> "월 1~3회";
+            case "WEEKLY_OR_MORE", "WEEKLY", "WEEKLY_1_OR_MORE" -> "주 1회 이상";
+            case "안 마심" -> "안 마심";
+            case "월 1~3회" -> "월 1~3회";
+            case "주 1회 이상" -> "주 1회 이상";
+            default -> drinkStatus.trim();
+        };
+    }
+
+    public static int mapDrinkStatusToAi(String drinkStatus) {
+        if (drinkStatus == null || drinkStatus.isBlank()) {
+            return 0;
+        }
+        return switch (normalizeToken(drinkStatus)) {
+            case "NEVER", "NONE", "안 마심" -> 0;
+            case "MONTHLY_1_TO_3", "SOMETIMES", "월 1~3회" -> 1;
+            case "WEEKLY_OR_MORE", "WEEKLY", "WEEKLY_1_OR_MORE", "주 1회 이상" -> 2;
+            default -> 0;
+        };
+    }
+
+    /** 폭음 표시용 한글 라벨 */
+    public static String toBingeDisplayLabel(String bingeStatus) {
+        if (bingeStatus == null || bingeStatus.isBlank()) {
+            return null;
+        }
+        return switch (normalizeToken(bingeStatus)) {
+            case "NEVER", "NONE" -> "없음";
+            case "MONTHLY_1", "MONTHLY" -> "월 1회";
+            case "WEEKLY_OR_MORE", "WEEKLY", "WEEKLY_1_OR_MORE" -> "주 1회 이상";
+            case "없음" -> "없음";
+            case "월 1회" -> "월 1회";
+            case "주 1회 이상" -> "주 1회 이상";
+            default -> bingeStatus.trim();
+        };
+    }
+
     public static int mapBingeStatusToAi(String bingeStatus) {
         if (bingeStatus == null || bingeStatus.isBlank()) {
             return 0;
         }
-        String v = bingeStatus.trim();
-        return switch (v) {
-            case "없음" -> 0;
-            case "월 1회" -> 1;
-            case "주 1회 이상" -> 2;
+        return switch (normalizeToken(bingeStatus)) {
+            case "NEVER", "NONE", "없음" -> 0;
+            case "MONTHLY_1", "MONTHLY", "월 1회" -> 1;
+            case "WEEKLY_OR_MORE", "WEEKLY", "WEEKLY_1_OR_MORE", "주 1회 이상" -> 2;
             default -> 0;
         };
+    }
+
+    private static String normalizeToken(String raw) {
+        return raw.trim().toUpperCase();
     }
 
     /**
