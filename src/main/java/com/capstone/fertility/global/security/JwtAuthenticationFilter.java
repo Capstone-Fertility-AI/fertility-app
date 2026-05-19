@@ -1,6 +1,8 @@
 package com.capstone.fertility.global.security;
 
+import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.enums.Role;
+import com.capstone.fertility.domain.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,10 +28,12 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     // 필터는 SecurityConfig에서 new로 직접 만들어 쓸 거라 @Component 필요 X
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -64,9 +68,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        //4. 토큰 유효하면 인증 상태 넘겨야 하니, customPrincipal 만들고 SecurityContextHolder에 넘겨줘야함.
         Long userId = jwtTokenProvider.getUserId(token);
         Role role = jwtTokenProvider.getRole(token);
+
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null || !user.isActive()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         CustomPrincipal principal = new CustomPrincipal(userId, role);
 

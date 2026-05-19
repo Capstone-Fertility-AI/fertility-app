@@ -133,6 +133,24 @@ public class User extends BaseEntity {
         // 양방향 세팅이 필요하다면 partner.setPartner(this) 등 추가 구현 가능
     }
 
+    public void clearPartner() {
+        this.partner = null;
+    }
+
+    public boolean isActive() {
+        return this.status == UserStatus.ACTIVE;
+    }
+
+    /** 소프트 삭제: 계정 비활성화 및 재로그인용 식별자 해제 */
+    public void withdraw() {
+        this.status = UserStatus.DELETED;
+        this.partner = null;
+        this.kakaoId = null;
+        if (this.email != null && !this.email.isBlank()) {
+            this.email = "withdrawn." + this.id + "." + System.currentTimeMillis() + "@deleted.local";
+        }
+    }
+
     /** 최대 레벨 */
     private static final int MAX_LEVEL = 5;
 

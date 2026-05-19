@@ -6,6 +6,8 @@ import com.capstone.fertility.domain.user.dto.res.UserResDTO;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.enums.LoginType;
 import com.capstone.fertility.domain.user.enums.Role;
+import com.capstone.fertility.domain.user.enums.UserStatus;
+import com.capstone.fertility.global.auth.repository.RefreshTokenRepository;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
 import com.capstone.fertility.domain.user.repository.UserRepository;
@@ -26,11 +28,12 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenProvider refreshTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final KakaoApiClient kakaoApiClient;
 
     @Override
     public UserResDTO.LoginResDTO signUp(UserReqDTO.SignUpReqDTO request) {
-        if (userRepository.existsByEmail(request.email())){
+        if (userRepository.existsByEmailAndStatus(request.email(), UserStatus.ACTIVE)) {
             throw new UserException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
@@ -52,25 +55,32 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     public void withdraw(Long userId) {
-        // 1. DB에서 탈퇴할 유저 정보를 가져옵니다.
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
 
-        // 2. 카카오 서버에 연결 끊기(Unlink) 요청을 보냅니다.
-        try {
-            kakaoApiClient.unlinkUser(user.getKakaoId()); // 수정
-        } catch (Exception e) {
-            System.err.println("카카오 언링크 실패: " + e.getMessage());
+        if (!user.isActive()) {
+            return;
         }
 
-        // 3. 우리 쪽 데이터베이스에서 유저 정보를 삭제합니다 (Hard Delete).
-        userRepository.delete(user);
+        Long kakaoId = user.getKakaoId();
+        if (kakaoId != null) {
+            try {
+                kakaoApiClient.unlinkUser(kakaoId);
+            } catch (Exception e) {
+                System.err.println("카카오 언링크 실패: " + e.getMessage());
+            }
+        }
+
+        userRepository.findAllByPartner_Id(userId).forEach(User::clearPartner);
+        user.withdraw();
+        refreshTokenRepository.deleteAllByUserId(userId);
     }
 
     @Override
     public UserResDTO.UserInfoDTO updateMyInfo(Long userId, UserReqDTO.UpdateProfileDTO request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
+        ensureActive(user);
 
         user.updateProfile(request.getNickname(), request.getProfileImageUrl());
 
@@ -81,7 +91,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public UserResDTO.LoginResDTO login(UserReqDTO.LoginReqDTO request) {
 
         User user = userRepository.findByEmail(request.email()).orElseThrow(() -> new UserException(UserErrorCode.USER_EMAIL_NOT_FOUND));
-
+        ensureActive(user);
         ensureEmailLoginAllowed(user);
         if (user.getPassword() == null || user.getPassword().isBlank()) {
             throw new UserException(UserErrorCode.INVALID_PASSWORD);
@@ -101,6 +111,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         LoginType loginType = user.getLoginType();
         if (loginType == LoginType.KAKAO || (loginType == null && user.getKakaoId() != null)) {
             throw new UserException(UserErrorCode.EMAIL_LOGIN_NOT_SUPPORTED_FOR_SOCIAL);
+        }
+    }
+
+    private void ensureActive(User user) {
+        if (!user.isActive()) {
+            throw new UserException(UserErrorCode.USER_WITHDRAWN);
         }
     }
 }

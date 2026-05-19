@@ -21,6 +21,7 @@ public enum UserErrorCode implements BaseErrorCode {
 
     // [인증/토큰 관련]
     USER_INVALID_REFRESH_TOKEN_OWNER(HttpStatus.UNAUTHORIZED, "AUTH401_2", "본인 소유의 Refresh Token이 아닙니다."),
+    USER_WITHDRAWN(HttpStatus.UNAUTHORIZED, "USER401_4", "탈퇴한 계정입니다."),
 
     // [파트너 연동 관련]
     PARTNER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER404_3", "연동할 파트너를 찾을 수 없습니다."),

@@ -20,6 +20,9 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public UserResDTO.UserInfoDTO getMyInfo(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
+        if (!user.isActive()) {
+            throw new UserException(UserErrorCode.USER_WITHDRAWN);
+        }
 
         return UserConverter.toUserInfoDTO(user);
     }

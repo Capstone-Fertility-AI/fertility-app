@@ -8,6 +8,8 @@ package com.capstone.fertility.global.oauth.service;
 
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.enums.LoginType;
+import com.capstone.fertility.domain.user.exception.UserException;
+import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
 import com.capstone.fertility.domain.user.repository.UserRepository;
 import com.capstone.fertility.global.oauth.model.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,15 @@ public class OauthUserService {
     @Transactional
     public User handleKakaoUser(KakaoUserInfo info) {
         return userRepository.findByKakaoId(Long.valueOf(info.getKakaoId()))
+                .map(this::ensureActive)
                 .orElseGet(() -> createKakaoUser(info));
+    }
+
+    private User ensureActive(User user) {
+        if (!user.isActive()) {
+            throw new UserException(UserErrorCode.USER_WITHDRAWN);
+        }
+        return user;
     }
 
     private User createKakaoUser(KakaoUserInfo info) {

@@ -1,5 +1,6 @@
 package com.capstone.fertility.global.security;
 
+import com.capstone.fertility.domain.user.repository.UserRepository;
 import com.capstone.fertility.global.apiPayLoad.ApiResponse;
 import com.capstone.fertility.global.apiPayLoad.code.GeneralErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +31,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
 
     @Bean //이 메서드를 스프링이 실행해서 반환값을 Spring Bean으로 등록함.
@@ -98,7 +100,7 @@ public class SecurityConfig {
 
         // 6. 우리가 만든 JwtAuthenticationFilter 등록
         http.addFilterBefore(
-                new JwtAuthenticationFilter(jwtTokenProvider),
+                new JwtAuthenticationFilter(jwtTokenProvider, userRepository),
                 org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class
         );
 
