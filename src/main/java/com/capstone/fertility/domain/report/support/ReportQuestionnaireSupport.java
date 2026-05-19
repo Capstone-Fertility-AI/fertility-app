@@ -24,6 +24,9 @@ public final class ReportQuestionnaireSupport {
     public static final String LABEL_DRINK = "음주";
     public static final String LABEL_SLEEP = "수면";
 
+    /** 미선택·비음주(NEVER) 리포트 표시용 */
+    public static final String VALUE_NON_DRINKER = "비음주";
+
     private ReportQuestionnaireSupport() {
     }
 
@@ -125,7 +128,17 @@ public final class ReportQuestionnaireSupport {
     }
 
     private static String formatDrinkShort(String drinkStatus) {
-        return AiLifestyleCategoryMapper.toDrinkDisplayLabel(drinkStatus);
+        if (drinkStatus == null || drinkStatus.isBlank()) {
+            return VALUE_NON_DRINKER;
+        }
+        String label = AiLifestyleCategoryMapper.toDrinkDisplayLabel(drinkStatus);
+        if (label == null || label.isBlank()) {
+            return VALUE_NON_DRINKER;
+        }
+        if ("안 마심".equals(label)) {
+            return VALUE_NON_DRINKER;
+        }
+        return label;
     }
 
     private static String formatSleepShort(Integer hours, Integer minutes) {

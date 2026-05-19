@@ -56,7 +56,35 @@ class ReportQuestionnaireSupportTest {
         assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
                 .containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "매일");
         assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
-                .doesNotContainKey(ReportQuestionnaireSupport.LABEL_DRINK);
+                .containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, ReportQuestionnaireSupport.VALUE_NON_DRINKER);
+    }
+
+    @Test
+    void buildFrom_maleSession_showsNonDrinkerWhenDrinkMissing() {
+        TestSession session = TestSession.builder()
+                .gender(Gender.M)
+                .age(30)
+                .drinkStatus(null)
+                .smokeStatus("NEVER")
+                .build();
+
+        Map<String, Map<String, String>> groups = groupMap(ReportQuestionnaireSupport.buildFrom(session));
+
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
+                .containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, ReportQuestionnaireSupport.VALUE_NON_DRINKER);
+    }
+
+    @Test
+    void buildFrom_maleSession_neverMapsToNonDrinkerLabel() {
+        TestSession session = TestSession.builder()
+                .gender(Gender.M)
+                .drinkStatus("NEVER")
+                .build();
+
+        Map<String, Map<String, String>> groups = groupMap(ReportQuestionnaireSupport.buildFrom(session));
+
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
+                .containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, ReportQuestionnaireSupport.VALUE_NON_DRINKER);
     }
 
     private static Map<String, Map<String, String>> groupMap(List<ReportResDTO.QuestionnaireGroup> groups) {
