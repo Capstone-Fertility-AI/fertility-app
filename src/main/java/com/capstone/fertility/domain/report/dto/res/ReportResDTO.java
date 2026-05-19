@@ -22,7 +22,21 @@ public class ReportResDTO {
             Condition condition,
             List<FactorAnalysis> factorAnalyses,
             List<Mission> missions,
-            String closing
+            String closing,
+            /** 프론트 상세 리포트 설문 요약(키·몸무게·흡연·음주 등). rows[].label / value */
+            List<QuestionnaireGroup> questionnaireGroups
+    ) {}
+
+    @Builder
+    public record QuestionnaireGroup(
+            String title,
+            List<QuestionnaireRow> rows
+    ) {}
+
+    @Builder
+    public record QuestionnaireRow(
+            String label,
+            String value
     ) {}
 
     @Builder

@@ -2,6 +2,7 @@ package com.capstone.fertility.domain.report.service;
 
 import com.capstone.fertility.domain.report.dto.res.ReportResDTO;
 import com.capstone.fertility.domain.report.exception.ReportException;
+import com.capstone.fertility.domain.report.support.ReportQuestionnaireSupport;
 import com.capstone.fertility.domain.report.exception.code.ReportErrorCode;
 import com.capstone.fertility.domain.result.entity.TestResult;
 import com.capstone.fertility.domain.test.support.SleepInputSupport;
@@ -113,6 +114,7 @@ public class ReportServiceImpl implements ReportService {
                 .factorAnalyses(parsed.factorAnalyses)
                 .missions(missionResponse)
                 .closing(parsed.closing)
+                .questionnaireGroups(ReportQuestionnaireSupport.buildFrom(session))
                 .build();
     }
 
