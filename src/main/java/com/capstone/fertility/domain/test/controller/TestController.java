@@ -74,7 +74,9 @@ public class TestController {
     @PatchMapping("/{sessionId}/step/female")
     @Operation(
             summary = "여성 임시 저장",
-            description = "여성 전용 질문(step 1~9) 임시 저장. 수면은 남성과 동일하게 sleepHours+sleepMinutes 쌍 검증(TEST400_7) 및 합계 ≤24h 규칙을 따릅니다."
+            description = "여성 전용 질문(step 1~9) 임시 저장. smokeLevel/binge12는 0~2 tier 또는 설문 원시값(개비·연간 폭음 일수) 가능. "
+                    + "cigarettesPerDay/bingeDaysPerYear 명시 권장. drinkStatus는 남성과 동일 한글(안 마심/월 1~3회/주 1회 이상). "
+                    + "수면은 sleepHours+sleepMinutes 쌍 검증(TEST400_7) 및 합계 ≤24h."
     )
     public ApiResponse<Void> saveFemaleStep(
             @AuthenticationPrincipal CustomPrincipal principal,

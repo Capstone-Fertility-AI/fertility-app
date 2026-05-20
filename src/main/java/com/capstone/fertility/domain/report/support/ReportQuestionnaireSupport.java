@@ -5,6 +5,7 @@ import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.user.enums.Gender;
 import com.capstone.fertility.global.ai.mapping.AiLifestyleCategoryMapper;
+import com.capstone.fertility.global.ai.mapping.LifestyleDisplayLabels;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +99,11 @@ public final class ReportQuestionnaireSupport {
     private static String formatSmokeShort(TestSession session) {
         String label;
         if (session.getGender() == Gender.F) {
-            label = formatFemaleSmokeShort(session.getSmokeLevel());
+            label = LifestyleDisplayLabels.smokeLabel(
+                    Gender.F,
+                    null,
+                    session.getSmokeLevel(),
+                    session.getCigarettesPerDay());
         } else {
             label = AiLifestyleCategoryMapper.toSmokeDisplayLabel(session.getSmokeStatus());
         }
@@ -113,18 +118,6 @@ public final class ReportQuestionnaireSupport {
                 .replace("안 피움", "비흡연")
                 .replace("가끔 피움", "가끔")
                 .replace("매일 피움", "매일");
-    }
-
-    private static String formatFemaleSmokeShort(Integer smokeLevel) {
-        if (smokeLevel == null) {
-            return null;
-        }
-        return switch (AiLifestyleCategoryMapper.mapFemaleSmokeLevelToAi(smokeLevel)) {
-            case 0 -> "비흡연";
-            case 1 -> "가끔";
-            case 2 -> "매일";
-            default -> null;
-        };
     }
 
     private static String formatDrinkShort(String drinkStatus) {

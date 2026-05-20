@@ -126,9 +126,11 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
             drink12 = AiLifestyleCategoryMapper.mapDrinkStatusToAi(session.getDrinkStatus());
             binge12Score = AiLifestyleCategoryMapper.mapBingeStatusToAi(session.getBingeStatus());
         } else {
-            smoke30 = AiLifestyleCategoryMapper.mapFemaleSmokeLevelToAi(session.getSmokeLevel());
+            smoke30 = AiLifestyleCategoryMapper.femaleSmokeForAi(
+                    session.getSmokeLevel(), session.getCigarettesPerDay());
             drink12 = AiLifestyleCategoryMapper.mapDrinkStatusToAi(session.getDrinkStatus());
-            binge12Score = AiLifestyleCategoryMapper.mapFemaleBingeLevelToAi(session.getBinge12());
+            binge12Score = AiLifestyleCategoryMapper.femaleBingeForAi(
+                    session.getBinge12(), session.getBingeDaysPerYear());
         }
 
         AiPredictionReqDTO.Request aiRequest = AiPredictionReqDTO.Request.builder()

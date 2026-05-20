@@ -117,6 +117,9 @@ public class TestCommandServiceImpl implements TestCommandService {
                 request.pid(),
                 request.smokeLevel(),
                 request.binge12(),
+                request.drinkStatus(),
+                request.cigarettesPerDay(),
+                request.bingeDaysPerYear(),
                 request.sleepHours(),
                 request.sleepMinutes()
         );

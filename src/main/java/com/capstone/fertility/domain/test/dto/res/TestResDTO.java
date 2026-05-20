@@ -61,6 +61,10 @@ public class TestResDTO {
             Integer gon,
             Integer smokeLevel,
             Integer binge12,
+            /** 여성: 하루 평균 개비 수 (원시값) */
+            Integer cigarettesPerDay,
+            /** 여성: 연간 5잔+ 폭음 일수 (원시값) */
+            Integer bingeDaysPerYear,
             Integer sleepHours,
             Integer sleepMinutes,
 
@@ -70,7 +74,12 @@ public class TestResDTO {
             Boolean hasSex12Mo,
             String smokeStatus,
             String drinkStatus,
-            String bingeStatus
+            String bingeStatus,
+
+            /** 표시용 흡연 라벨 (성별·입력 방식에 따라 자동 생성) */
+            String smokeLabel,
+            String drinkLabel,
+            String bingeLabel
     ) {}
 
     /**

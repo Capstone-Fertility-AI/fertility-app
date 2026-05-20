@@ -4,12 +4,8 @@ package com.capstone.fertility.global.ai.mapping;
  * 프론트 설문 API 코드(NEVER, MONTHLY_1_TO_3 등) 및 한국어 라벨을
  * AI 0~2 스케일·리포트 표시용 한글로 변환합니다.
  * <p>
- * 프론트 전송 규약: {@code toApiSmokeStatus}, {@code toApiDrinkStatus}, {@code toApiBingeStatus}
- * <ul>
- *   <li>흡연: NEVER | OCCASIONAL | DAILY</li>
- *   <li>음주: NEVER | MONTHLY_1_TO_3 | WEEKLY_OR_MORE</li>
- *   <li>폭음: NEVER | MONTHLY_1 | WEEKLY_OR_MORE</li>
- * </ul>
+ * 여성: smokeLevel/binge12에 0~2 tier 또는 설문 원시값(개비·연간 폭음 일수) 수용.
+ * AI 전달 시 원시값 우선, 없으면 tier 대표값(3개비, 6일, 10개비, 13일).
  */
 public final class AiLifestyleCategoryMapper {
 
@@ -104,29 +100,119 @@ public final class AiLifestyleCategoryMapper {
         return raw.trim().toUpperCase();
     }
 
-    /**
-     * 여성 세션: smoke_level 정수 (프론트가 0,1,2 또는 구버전 1,3,5로 줄 수 있음)
-     */
-    public static int mapFemaleSmokeLevelToAi(Integer smokeLevel) {
-        if (smokeLevel == null) {
+    /** 하루 개비 수 → tier: 0→0, 1~5→1, 6+→2 */
+    public static int tierFromCigarettesPerDay(int cigarettesPerDay) {
+        if (cigarettesPerDay <= 0) {
             return 0;
         }
-        int x = smokeLevel;
-        if (x >= 0 && x <= 2) {
-            return x;
+        if (cigarettesPerDay <= 5) {
+            return 1;
         }
-        return switch (x) {
-            case 1 -> 0;
-            case 3 -> 1;
-            case 5 -> 2;
+        return 2;
+    }
+
+    /** 연간 폭음(5잔+) 일수 → tier: 0→0, 1~12→1, 13+→2 */
+    public static int tierFromBingeDaysPerYear(int bingeDaysPerYear) {
+        if (bingeDaysPerYear <= 0) {
+            return 0;
+        }
+        if (bingeDaysPerYear <= 12) {
+            return 1;
+        }
+        return 2;
+    }
+
+    public static FemaleLifestyleNormalized normalizeFemaleSmokeInput(
+            Integer smokeLevelOrRaw,
+            Integer cigarettesPerDay
+    ) {
+        if (cigarettesPerDay != null) {
+            int raw = Math.max(0, cigarettesPerDay);
+            return new FemaleLifestyleNormalized(tierFromCigarettesPerDay(raw), raw);
+        }
+        if (smokeLevelOrRaw == null) {
+            return null;
+        }
+        int v = smokeLevelOrRaw;
+        if (v >= 0 && v <= 2) {
+            return new FemaleLifestyleNormalized(v, null);
+        }
+        return switch (v) {
+            case 1 -> new FemaleLifestyleNormalized(0, null);
+            case 3 -> new FemaleLifestyleNormalized(1, null);
+            case 5 -> new FemaleLifestyleNormalized(2, null);
+            default -> {
+                int raw = Math.max(0, v);
+                yield new FemaleLifestyleNormalized(tierFromCigarettesPerDay(raw), raw);
+            }
+        };
+    }
+
+    public static FemaleLifestyleNormalized normalizeFemaleBingeInput(
+            Integer binge12OrRaw,
+            Integer bingeDaysPerYear
+    ) {
+        if (bingeDaysPerYear != null) {
+            int raw = Math.max(0, bingeDaysPerYear);
+            return new FemaleLifestyleNormalized(tierFromBingeDaysPerYear(raw), raw);
+        }
+        if (binge12OrRaw == null) {
+            return null;
+        }
+        int v = binge12OrRaw;
+        if (v >= 0 && v <= 2) {
+            return new FemaleLifestyleNormalized(v, null);
+        }
+        return switch (v) {
+            case 1 -> new FemaleLifestyleNormalized(0, null);
+            case 3 -> new FemaleLifestyleNormalized(1, null);
+            case 5 -> new FemaleLifestyleNormalized(2, null);
+            default -> {
+                int raw = Math.max(0, v);
+                yield new FemaleLifestyleNormalized(tierFromBingeDaysPerYear(raw), raw);
+            }
+        };
+    }
+
+    public static int femaleSmokeForAi(Integer smokeTier, Integer cigarettesPerDay) {
+        if (cigarettesPerDay != null) {
+            return Math.max(0, cigarettesPerDay);
+        }
+        if (smokeTier == null) {
+            return 0;
+        }
+        return switch (smokeTier) {
+            case 0 -> 0;
+            case 1 -> 3;
+            case 2 -> 10;
             default -> 0;
         };
     }
 
-    /**
-     * 여성 세션: binge12 정수 (동일 스케일 가정)
-     */
+    public static int femaleBingeForAi(Integer bingeTier, Integer bingeDaysPerYear) {
+        if (bingeDaysPerYear != null) {
+            return Math.max(0, bingeDaysPerYear);
+        }
+        if (bingeTier == null) {
+            return 0;
+        }
+        return switch (bingeTier) {
+            case 0 -> 0;
+            case 1 -> 6;
+            case 2 -> 13;
+            default -> 0;
+        };
+    }
+
+    /** @deprecated {@link #femaleSmokeForAi(Integer, Integer)} 사용 */
+    @Deprecated
+    public static int mapFemaleSmokeLevelToAi(Integer smokeLevel) {
+        return femaleSmokeForAi(smokeLevel, null);
+    }
+
+    /** @deprecated {@link #femaleBingeForAi(Integer, Integer)} 사용 */
+    @Deprecated
     public static int mapFemaleBingeLevelToAi(Integer binge12) {
-        return mapFemaleSmokeLevelToAi(binge12);
+        return femaleBingeForAi(binge12, null);
     }
 }

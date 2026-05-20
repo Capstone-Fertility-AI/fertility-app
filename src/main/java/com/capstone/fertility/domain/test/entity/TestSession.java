@@ -3,6 +3,8 @@ package com.capstone.fertility.domain.test.entity;
 import com.capstone.fertility.domain.test.enums.TestSessionStatus;
 import com.capstone.fertility.domain.user.enums.Gender;
 import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.global.ai.mapping.AiLifestyleCategoryMapper;
+import com.capstone.fertility.global.ai.mapping.FemaleLifestyleNormalized;
 import com.capstone.fertility.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -74,6 +76,14 @@ public class TestSession extends BaseEntity {
 
     @Column(name = "binge12")
     private Integer binge12;
+
+    /** 여성: 설문 원시값 — 하루 평균 개비 수 (smoke_level은 0~2 tier) */
+    @Column(name = "cigarettes_per_day")
+    private Integer cigarettesPerDay;
+
+    /** 여성: 설문 원시값 — 최근 1년 5잔+ 폭음 일수 (binge12는 0~2 tier) */
+    @Column(name = "binge_days_per_year")
+    private Integer bingeDaysPerYear;
 
     /** 남성 전용: 생물학적 자녀 수 */
     @Column(name = "num_bio_kid")
@@ -174,6 +184,9 @@ public class TestSession extends BaseEntity {
             Integer pid,
             Integer smokeLevel,
             Integer binge12,
+            String drinkStatus,
+            Integer cigarettesPerDay,
+            Integer bingeDaysPerYear,
             Integer sleepHours,
             Integer sleepMinutes
     ) {
@@ -189,10 +202,23 @@ public class TestSession extends BaseEntity {
         if (endo != null) this.endo = endo;
         if (uf != null) this.uf = uf;
         if (pid != null) this.pid = pid;
-        if (smokeLevel != null) this.smokeLevel = smokeLevel;
-        if (binge12 != null) this.binge12 = binge12;
+        if (drinkStatus != null) this.drinkStatus = drinkStatus;
         if (sleepHours != null) this.sleepHours = sleepHours;
         if (sleepMinutes != null) this.sleepMinutes = sleepMinutes;
+
+        FemaleLifestyleNormalized smoke =
+                AiLifestyleCategoryMapper.normalizeFemaleSmokeInput(smokeLevel, cigarettesPerDay);
+        if (smoke != null) {
+            this.smokeLevel = smoke.tier();
+            this.cigarettesPerDay = smoke.rawQuantity();
+        }
+
+        FemaleLifestyleNormalized binge =
+                AiLifestyleCategoryMapper.normalizeFemaleBingeInput(binge12, bingeDaysPerYear);
+        if (binge != null) {
+            this.binge12 = binge.tier();
+            this.bingeDaysPerYear = binge.rawQuantity();
+        }
     }
 
     /**

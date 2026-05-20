@@ -47,7 +47,9 @@ public class TestReqDTO {
      * 여성 전용 임시 저장 DTO
      * - step: 1~9
      * - 공통: age, height, weight, chlam, gon, sleepHours, sleepMinutes (수면 입력 시 둘 다 필수·합계 ≤ 24h)
-     * - 여성 전용: menarcheAge, parity, pcos, endo, uf, pid, smokeLevel, binge12
+     * - 여성 전용: menarcheAge, parity, pcos, endo, uf, pid, smokeLevel, binge12,
+     *   drinkStatus(남성과 동일 한글 3종), cigarettesPerDay, bingeDaysPerYear
+     * - smokeLevel/binge12에 0~2 tier 또는 설문 원시 숫자(개비·연간 일수) 가능
      */
     public record FemaleStepSave(
             @NotNull(message = "단계(step)는 필수입니다.")
@@ -70,7 +72,12 @@ public class TestReqDTO {
             Integer uf,
             Integer pid,
             Integer smokeLevel,
-            Integer binge12
+            Integer binge12,
+            String drinkStatus,
+            /** 하루 평균 개비 수 (smokeLevel 대신 또는 함께) */
+            Integer cigarettesPerDay,
+            /** 최근 1년 5잔+ 폭음 일수 (binge12 대신 또는 함께) */
+            Integer bingeDaysPerYear
     ) {}
 
     /**

@@ -5,6 +5,7 @@ import com.capstone.fertility.domain.test.entity.TestSession;
 import com.capstone.fertility.domain.test.enums.TestSessionStatus;
 import com.capstone.fertility.domain.user.enums.Gender;
 import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.global.ai.mapping.LifestyleDisplayLabels;
 
 public class TestConverter {
 
@@ -57,6 +58,8 @@ public class TestConverter {
                 .gon(session.getGon())
                 .smokeLevel(session.getSmokeLevel())
                 .binge12(session.getBinge12())
+                .cigarettesPerDay(session.getCigarettesPerDay())
+                .bingeDaysPerYear(session.getBingeDaysPerYear())
                 .sleepHours(session.getSleepHours())
                 .sleepMinutes(session.getSleepMinutes())
                 .numBioKid(session.getNumBioKid())
@@ -65,6 +68,17 @@ public class TestConverter {
                 .smokeStatus(session.getSmokeStatus())
                 .drinkStatus(session.getDrinkStatus())
                 .bingeStatus(session.getBingeStatus())
+                .smokeLabel(LifestyleDisplayLabels.smokeLabel(
+                        session.getGender(),
+                        session.getSmokeStatus(),
+                        session.getSmokeLevel(),
+                        session.getCigarettesPerDay()))
+                .drinkLabel(LifestyleDisplayLabels.drinkLabel(session.getDrinkStatus()))
+                .bingeLabel(LifestyleDisplayLabels.bingeLabel(
+                        session.getGender(),
+                        session.getBingeStatus(),
+                        session.getBinge12(),
+                        session.getBingeDaysPerYear()))
                 .build();
     }
 }
