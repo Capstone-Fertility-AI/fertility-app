@@ -26,7 +26,14 @@ public class HomeResDTO {
     public record UserSummary(
             String nickname,
             int level,
-            int exp
+            int exp,
+            /** KST 오늘 웰니스 미션 +5 EXP 일일 상한(3회) 도달 여부 */
+            boolean dailyRewardCapReached,
+            /**
+             * Lv.5 달성 후 획득한 꽃 enum 이름(PEONY 등). Lv.5 미만이거나 미획득 시 null.
+             * 새싹 단계 표현은 level(1~5)로 판단.
+             */
+            String flowerType
     ) {}
 
     /**

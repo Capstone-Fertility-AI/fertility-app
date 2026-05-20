@@ -21,6 +21,22 @@ public final class ResultConverter {
                         : Collections.emptyList())
                 .createdAt(entity.getCreatedAt())
                 .inspectedAt(entity.getCreatedAt())
+                .label(buildHistoryLabel(entity))
                 .build();
+    }
+
+    private static String buildHistoryLabel(TestResult entity) {
+        Integer score = entity.getAiScore();
+        String risk = entity.getRiskLevel() != null ? entity.getRiskLevel().name() : null;
+        if (score == null && risk == null) {
+            return null;
+        }
+        if (score != null && risk != null) {
+            return score + "점 · " + risk;
+        }
+        if (score != null) {
+            return score + "점";
+        }
+        return risk;
     }
 }

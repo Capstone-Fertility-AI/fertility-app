@@ -22,7 +22,7 @@ public class HomeController {
     @GetMapping
     @Operation(summary = "홈 화면 조회", description = """
             로그인 사용자 홈 데이터.
-            - user: nickname, level, exp
+            - user: nickname, level, exp, dailyRewardCapReached, flowerType(Lv.5+ 최근 꽃)
             - recentTest: 최신 검사 1건(score 0~100, riskLevel SAFE|WARNING|DANGER, topFactors 가변). 없으면 null
             - todayMissions: GET /api/missions/today 와 동일(진행 중 미션 최대 3)
             - actions: TEST(검사하기), GUIDE(검사 상세 리포트, recentTest 있을 때만)

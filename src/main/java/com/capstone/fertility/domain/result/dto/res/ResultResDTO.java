@@ -23,7 +23,9 @@ public class ResultResDTO {
             List<String> topFactors,
             LocalDateTime createdAt,
             /** 검사일(보관함·달력). createdAt과 동일 시각 */
-            LocalDateTime inspectedAt
+            LocalDateTime inspectedAt,
+            /** 보관함 카드용 한 줄 라벨 (예: "89점 · SAFE") */
+            String label
     ) {}
 
     /**
