@@ -4,6 +4,7 @@ import com.capstone.fertility.domain.user.converter.UserConverter;
 import com.capstone.fertility.domain.user.dto.req.UserReqDTO;
 import com.capstone.fertility.domain.user.dto.res.UserResDTO;
 import com.capstone.fertility.domain.user.entity.User;
+import com.capstone.fertility.domain.user.enums.Gender;
 import com.capstone.fertility.domain.user.enums.LoginType;
 import com.capstone.fertility.domain.user.enums.Role;
 import com.capstone.fertility.domain.user.exception.UserException;
@@ -72,7 +73,28 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_ID_NOT_FOUND));
 
-        user.updateProfile(request.getNickname(), request.getProfileImageUrl());
+        if (request.getDisplayName() != null) {
+            String trimmed = request.getDisplayName().trim();
+            if (!trimmed.isEmpty() && trimmed.length() > 20) {
+                throw new UserException(UserErrorCode.INVALID_DISPLAY_NAME);
+            }
+        }
+
+        Gender parsedGender = null;
+        if (request.getGender() != null && !request.getGender().isBlank()) {
+            try {
+                parsedGender = Gender.from(request.getGender());
+            } catch (IllegalArgumentException e) {
+                throw new UserException(UserErrorCode.INVALID_GENDER);
+            }
+        }
+
+        user.patchProfile(
+                request.getNickname(),
+                request.getProfileImageUrl(),
+                request.getDisplayName(),
+                parsedGender
+        );
 
         return UserConverter.toUserInfoDTO(user);
     }

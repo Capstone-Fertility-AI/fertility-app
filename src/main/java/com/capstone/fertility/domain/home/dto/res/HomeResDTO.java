@@ -8,9 +8,8 @@ import java.util.List;
 
 /**
  * 홈 화면 조회 API 응답.
- * user(닉네임/레벨/EXP), recentTest(가장 최근 검사 결과 카드), todayMissions(오늘의 미션 3개) 를 채워준다.
- * unreadNotiCount 는 추후 연동.
- * actions: 검사하기, 내 몸상태 조회, 행동 가이드 카드용 형태만 제공(연동 없음).
+ * user(닉네임/레벨/EXP), recentTest(최신 검사 DB 요약), todayMissions(진행 중 웰니스 미션),
+ * actions(TEST / GUIDE), unreadNotiCount(알림 기능 전 0).
  */
 public class HomeResDTO {
 
@@ -43,7 +42,10 @@ public class HomeResDTO {
             LocalDateTime createdAt
     ) {}
 
-    /** 홈 메인 카드용 형태 (검사하기 / 내 몸상태 조회 / 행동 가이드). 실제 연동은 추후. */
+    /**
+     * 홈 CTA 카드.
+     * type: TEST — 검사 플로우(POST /tests/start 등) / GUIDE — GET /api/results/{recentTest.resultId}
+     */
     @Builder
     public record ActionCard(
             String type,

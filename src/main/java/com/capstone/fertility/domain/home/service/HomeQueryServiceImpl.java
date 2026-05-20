@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -45,12 +46,7 @@ public class HomeQueryServiceImpl implements HomeQueryService {
         List<WellnessMissionResDTO.MissionItem> todayMissions =
                 today != null && today.missions() != null ? today.missions() : List.of();
 
-        List<HomeResDTO.ActionCard> actions = List.of(
-                HomeResDTO.ActionCard.builder().type("TEST").title("검사하기").build(),
-                HomeResDTO.ActionCard.builder().type("BODY_STATUS").title("내 몸상태 조회").build(),
-                HomeResDTO.ActionCard.builder().type("GUIDE").title("행동 가이드").build(),
-                HomeResDTO.ActionCard.builder().type("SETTINGS").title("설정").build()
-        );
+        List<HomeResDTO.ActionCard> actions = buildActionCards(recentTest);
 
         return HomeResDTO.HomeDTO.builder()
                 .user(userSummary)
@@ -59,6 +55,19 @@ public class HomeQueryServiceImpl implements HomeQueryService {
                 .unreadNotiCount(0)
                 .actions(actions)
                 .build();
+    }
+
+    /**
+     * 홈 CTA 규약: TEST(검사 플로우), GUIDE(최근 검사 상세 리포트 — recentTest 있을 때만).
+     * BODY_STATUS / SETTINGS 등은 내려주지 않음(프론트 무시).
+     */
+    private List<HomeResDTO.ActionCard> buildActionCards(HomeResDTO.RecentTest recentTest) {
+        List<HomeResDTO.ActionCard> cards = new ArrayList<>();
+        cards.add(HomeResDTO.ActionCard.builder().type("TEST").title("검사하기").build());
+        if (recentTest != null && recentTest.resultId() != null) {
+            cards.add(HomeResDTO.ActionCard.builder().type("GUIDE").title("검사 상세 리포트").build());
+        }
+        return cards;
     }
 
     private HomeResDTO.RecentTest toRecentTestCard(TestResult r) {

@@ -15,7 +15,11 @@ public class UserResDTO {
     public record UserInfoDTO (
         Long userId,
         String nickname,
+        /** 홈 인사·설정 표시 이름. 미설정 시 null */
+        String displayName,
         String profileImageUrl,
+        /** M | F. 미설정 시 null */
+        String gender,
         boolean isTermsAgreed
     ) {}
 }

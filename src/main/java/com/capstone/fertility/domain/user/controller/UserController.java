@@ -23,6 +23,7 @@ public class UserController {
     private final UserQueryService userQueryService;
 
     @GetMapping("/me")
+    @Operation(summary = "내 프로필 조회", description = "nickname(계정), displayName(표시 이름), gender(M|F), profileImageUrl, isTermsAgreed")
     public ApiResponse<UserResDTO.UserInfoDTO> getMyInfo(
             @AuthenticationPrincipal CustomPrincipal principal
     ) {
@@ -31,7 +32,12 @@ public class UserController {
     }
 
     @PatchMapping("/me")
-    @Operation(summary = "내 정보 수정 API", description = "로그인된 사용자의 닉네임, 프로필 이미지를 수정합니다.")
+    @Operation(summary = "내 정보 수정 API", description = """
+            PATCH — 보낸 필드만 반영.
+            - nickname, profileImageUrl
+            - displayName: 표시 이름 1~20자(trim). nickname과 분리
+            - gender: M | F (MALE/FEMALE 허용). 프로필·다음 검사 기본값
+            """)
     public ApiResponse<UserResDTO.UserInfoDTO> updateMyInfo(
             @AuthenticationPrincipal CustomPrincipal principal,
             @RequestBody UserReqDTO.UpdateProfileDTO request
