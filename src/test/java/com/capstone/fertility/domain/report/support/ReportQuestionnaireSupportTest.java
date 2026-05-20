@@ -42,6 +42,21 @@ class ReportQuestionnaireSupportTest {
     }
 
     @Test
+    void buildFrom_femaleSession_rawCigarettes_showsCountLabel() {
+        TestSession session = TestSession.builder()
+                .gender(Gender.F)
+                .age(36)
+                .smokeLevel(2)
+                .cigarettesPerDay(10)
+                .build();
+
+        Map<String, Map<String, String>> groups = groupMap(ReportQuestionnaireSupport.buildFrom(session));
+
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
+                .containsEntry(ReportQuestionnaireSupport.LABEL_SMOKE, "하루 10개비");
+    }
+
+    @Test
     void buildFrom_femaleSession_mapsSmokeLevelToShortLabel() {
         TestSession session = TestSession.builder()
                 .gender(Gender.F)

@@ -117,7 +117,9 @@ public final class ReportQuestionnaireSupport {
         return label
                 .replace("안 피움", "비흡연")
                 .replace("가끔 피움", "가끔")
-                .replace("매일 피움", "매일");
+                .replace("매일 피움", "매일")
+                .replace("가끔 흡연 (1~5개비/일)", "가끔")
+                .replace("흡연 (6개비/일 이상)", "매일");
     }
 
     private static String formatDrinkShort(String drinkStatus) {
