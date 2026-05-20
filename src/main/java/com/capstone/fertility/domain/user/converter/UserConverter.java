@@ -10,7 +10,9 @@ public class UserConverter {
         return UserResDTO.UserInfoDTO.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
+                .displayName(user.getDisplayName())
                 .profileImageUrl(user.getProfileImageUrl())
+                .gender(user.getGender() != null ? user.getGender().name() : null)
                 .isTermsAgreed(user.isTermsAgreed())
                 .build();
     }

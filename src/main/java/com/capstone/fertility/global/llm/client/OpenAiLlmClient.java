@@ -4,6 +4,7 @@ import com.capstone.fertility.global.llm.config.LlmProperties;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,9 +19,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * OpenAI ChatCompletion API 호출 구현체.
+ * <p>
+ * {@code llm.provider} 설정값이 {@code openai} 이거나, 미설정인 경우 활성화된다.
+ * (provider 값을 {@code gemini} 로 바꾸면 {@link GeminiLlmClient} 가 대신 주입된다.)
+ */
 @Slf4j
 @Component
 @EnableConfigurationProperties(LlmProperties.class)
+@ConditionalOnProperty(prefix = "llm", name = "provider", havingValue = "openai", matchIfMissing = true)
 public class OpenAiLlmClient implements LlmClient {
 
     private final WebClient webClient;

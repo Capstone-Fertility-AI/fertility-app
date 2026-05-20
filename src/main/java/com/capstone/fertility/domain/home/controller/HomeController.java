@@ -20,7 +20,14 @@ public class HomeController {
     private final HomeQueryService homeQueryService;
 
     @GetMapping
-    @Operation(summary = "홈 화면 조회", description = "로그인 사용자의 홈 데이터를 반환합니다. user(nickname, level, exp)와 todayMissions(최신 검사 기준 오늘의 미션 3개)를 채워주며, recentTest/unreadNotiCount는 추후 연동 예정입니다.")
+    @Operation(summary = "홈 화면 조회", description = """
+            로그인 사용자 홈 데이터.
+            - user: nickname, level, exp
+            - recentTest: 최신 검사 1건(score 0~100, riskLevel SAFE|WARNING|DANGER, topFactors 가변). 없으면 null
+            - todayMissions: GET /api/missions/today 와 동일(진행 중 미션 최대 3)
+            - actions: TEST(검사하기), GUIDE(검사 상세 리포트, recentTest 있을 때만)
+            - unreadNotiCount: 알림 미구현 시 0
+            """)
     public ApiResponse<HomeResDTO.HomeDTO> getHome(
             @AuthenticationPrincipal CustomPrincipal principal
     ) {

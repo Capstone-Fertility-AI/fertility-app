@@ -45,6 +45,10 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String nickname;
 
+    /** 홈 인사·설정용 표시 이름(계정 nickname과 분리). 1~20자, trim 저장. */
+    @Column(name = "display_name", length = 20)
+    private String displayName;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 10)
     private Gender gender;
@@ -117,12 +121,25 @@ public class User extends BaseEntity {
     }
 
     public void updateProfile(String nickname, String profileImageUrl) {
-        // PATCH 요청의 특성을 반영하여, null이 아닌 값만 변경합니다.
+        patchProfile(nickname, profileImageUrl, null, null);
+    }
+
+    /**
+     * PATCH /users/me — null 필드는 변경하지 않음.
+     */
+    public void patchProfile(String nickname, String profileImageUrl, String displayName, Gender gender) {
         if (nickname != null) {
             this.nickname = nickname;
         }
         if (profileImageUrl != null) {
             this.profileImageUrl = profileImageUrl;
+        }
+        if (displayName != null) {
+            String trimmed = displayName.trim();
+            this.displayName = trimmed.isEmpty() ? null : trimmed;
+        }
+        if (gender != null) {
+            this.gender = gender;
         }
     }
     /**
