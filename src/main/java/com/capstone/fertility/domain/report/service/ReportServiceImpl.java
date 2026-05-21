@@ -6,6 +6,7 @@ import com.capstone.fertility.domain.report.support.ReportComparisonTableSupport
 import com.capstone.fertility.domain.report.support.ReportQuestionnaireSupport;
 import com.capstone.fertility.domain.report.exception.code.ReportErrorCode;
 import com.capstone.fertility.domain.result.entity.TestResult;
+import com.capstone.fertility.domain.result.enums.RiskLevel;
 import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.result.repository.TestResultRepository;
 import com.capstone.fertility.domain.test.entity.TestSession;
@@ -206,8 +207,10 @@ public class ReportServiceImpl implements ReportService {
         payload.put("nickname", user.getNickname());
         payload.put("age", session.getAge());
         payload.put("gender", session.getGender() == Gender.M ? "남성" : "여성");
+        RiskLevel riskLevel = result.getRiskLevel() != null ? result.getRiskLevel() : RiskLevel.DANGER;
         payload.put("score", result.getAiScore());
-        payload.put("riskLevel", result.getRiskLevel() != null ? result.getRiskLevel().name() : "DANGER");
+        payload.put("riskLevel", riskLevel.name());
+        payload.put("riskLevelLabel", toRiskLevelLabel(riskLevel));
         payload.put("sleep", sleepDescription);
         payload.put("stress", stressDescription);
         payload.put("factors", factors);
@@ -308,6 +311,14 @@ public class ReportServiceImpl implements ReportService {
         if (node == null || node.isMissingNode() || node.isNull()) return null;
         String text = node.asText();
         return (text == null || text.isBlank()) ? null : text;
+    }
+
+    private static String toRiskLevelLabel(RiskLevel riskLevel) {
+        return switch (riskLevel) {
+            case SAFE -> "안전";
+            case WARNING -> "주의";
+            case DANGER -> "위험";
+        };
     }
 
     private String describeSleep(Integer sleepHours, Integer sleepMinutes) {

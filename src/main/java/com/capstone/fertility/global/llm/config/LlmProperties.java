@@ -9,10 +9,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "llm")
 public class LlmProperties {
 
-    private String provider = "openai";
     private String apiKey = "";
-    private String model = "gpt-4o-mini";
-    private String baseUrl = "https://api.openai.com";
+    private String model = "claude-3-5-sonnet-20241022";
+    private String baseUrl = "https://api.anthropic.com";
     private int connectTimeoutMs = 5000;
     private int readTimeoutMs = 30000;
     private double temperature = 0.7;
