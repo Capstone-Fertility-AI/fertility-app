@@ -57,6 +57,22 @@ class ReportQuestionnaireSupportTest {
     }
 
     @Test
+    void buildFrom_femaleSession_showsDrinkWhenDrinkStatusStored() {
+        TestSession session = TestSession.builder()
+                .gender(Gender.F)
+                .drinkStatus("WEEKLY_OR_MORE")
+                .bingeDaysPerYear(100)
+                .binge12(2)
+                .build();
+
+        Map<String, Map<String, String>> groups = groupMap(ReportQuestionnaireSupport.buildFrom(session));
+
+        assertThat(groups.get(ReportQuestionnaireSupport.GROUP_LIFESTYLE))
+                .containsEntry(ReportQuestionnaireSupport.LABEL_DRINK, "주 1회 이상")
+                .containsEntry(ReportQuestionnaireSupport.LABEL_BINGE, "최근 1년 폭음(5잔+) 100일");
+    }
+
+    @Test
     void buildFrom_femaleSession_mapsSmokeLevelToShortLabel() {
         TestSession session = TestSession.builder()
                 .gender(Gender.F)

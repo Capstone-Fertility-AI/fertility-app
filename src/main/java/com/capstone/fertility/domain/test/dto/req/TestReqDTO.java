@@ -1,6 +1,7 @@
 package com.capstone.fertility.domain.test.dto.req;
 
 import com.capstone.fertility.domain.user.enums.Gender;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -73,7 +74,11 @@ public class TestReqDTO {
             Integer pid,
             Integer smokeLevel,
             Integer binge12,
+            @JsonAlias({"drink_status", "drinkFrequency", "drink_frequency", "alcoholStatus"})
             String drinkStatus,
+            /** 0=비음주, 1=월1~3회, 2=주1회이상 (drinkStatus 없을 때) */
+            @JsonAlias({"drink_level", "drinkFrequency", "drink_frequency"})
+            Integer drinkLevel,
             /** 하루 평균 개비 수 (smokeLevel 대신 또는 함께) */
             Integer cigarettesPerDay,
             /** 최근 1년 5잔+ 폭음 일수 (binge12 대신 또는 함께) */

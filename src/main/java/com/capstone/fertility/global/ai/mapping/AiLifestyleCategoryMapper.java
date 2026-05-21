@@ -112,6 +112,50 @@ public final class AiLifestyleCategoryMapper {
     }
 
     /** 연간 폭음(5잔+) 일수 → tier: 0→0, 1~12→1, 13+→2 */
+    /**
+     * 여성 음주: {@code drinkStatus}(한글·API 코드·"0"|"1"|"2") 또는 {@code drinkLevel}(0~2) → DB 저장용 API 코드.
+     * 프론트가 drinkStatus 없이 drinkLevel만 보내는 경우 대응.
+     */
+    public static String resolveFemaleDrinkStatus(String drinkStatus, Integer drinkLevel) {
+        if (drinkStatus != null && !drinkStatus.isBlank()) {
+            String token = normalizeToken(drinkStatus);
+            return switch (token) {
+                case "NEVER", "NONE", "안 마심", "0" -> "NEVER";
+                case "MONTHLY_1_TO_3", "SOMETIMES", "월 1~3회", "1" -> "MONTHLY_1_TO_3";
+                case "WEEKLY_OR_MORE", "WEEKLY", "WEEKLY_1_OR_MORE", "주 1회 이상", "2" -> "WEEKLY_OR_MORE";
+                default -> {
+                    try {
+                        int n = Integer.parseInt(token);
+                        if (n >= 0 && n <= 2) {
+                            yield resolveFemaleDrinkStatus(null, n);
+                        }
+                    } catch (NumberFormatException ignored) {
+                        // fall through
+                    }
+                    yield drinkStatus.trim();
+                }
+            };
+        }
+        if (drinkLevel == null) {
+            return null;
+        }
+        int level = drinkLevel;
+        if (level >= 0 && level <= 2) {
+            return switch (level) {
+                case 0 -> "NEVER";
+                case 1 -> "MONTHLY_1_TO_3";
+                case 2 -> "WEEKLY_OR_MORE";
+                default -> null;
+            };
+        }
+        return switch (level) {
+            case 1 -> "NEVER";
+            case 3 -> "MONTHLY_1_TO_3";
+            case 5 -> "WEEKLY_OR_MORE";
+            default -> null;
+        };
+    }
+
     public static int tierFromBingeDaysPerYear(int bingeDaysPerYear) {
         if (bingeDaysPerYear <= 0) {
             return 0;
