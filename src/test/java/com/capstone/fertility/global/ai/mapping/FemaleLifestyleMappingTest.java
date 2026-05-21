@@ -54,6 +54,19 @@ class FemaleLifestyleMappingTest {
     }
 
     @Test
+    void resolveFemaleDrink_fromDrinkLevel2() {
+        assertEquals("WEEKLY_OR_MORE", AiLifestyleCategoryMapper.resolveFemaleDrinkStatus(null, 2));
+        assertEquals("월 1~3회", AiLifestyleCategoryMapper.toDrinkDisplayLabel(
+                AiLifestyleCategoryMapper.resolveFemaleDrinkStatus(null, 1)));
+    }
+
+    @Test
+    void resolveFemaleDrink_fromKoreanString() {
+        assertEquals("MONTHLY_1_TO_3",
+                AiLifestyleCategoryMapper.resolveFemaleDrinkStatus("월 1~3회", null));
+    }
+
+    @Test
     void legacyTierValues_stillWork() {
         FemaleLifestyleNormalized n = AiLifestyleCategoryMapper.normalizeFemaleSmokeInput(3, null);
         assertEquals(1, n.tier());

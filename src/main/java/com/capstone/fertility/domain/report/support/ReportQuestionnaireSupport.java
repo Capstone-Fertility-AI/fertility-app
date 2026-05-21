@@ -23,6 +23,7 @@ public final class ReportQuestionnaireSupport {
     public static final String LABEL_WEIGHT = "몸무게";
     public static final String LABEL_SMOKE = "흡연";
     public static final String LABEL_DRINK = "음주";
+    public static final String LABEL_BINGE = "폭음";
     public static final String LABEL_SLEEP = "수면";
 
     /** 미선택·비음주(NEVER) 리포트 표시용 */
@@ -51,7 +52,8 @@ public final class ReportQuestionnaireSupport {
 
         List<ReportResDTO.QuestionnaireRow> lifestyleRows = new ArrayList<>();
         addRow(lifestyleRows, LABEL_SMOKE, formatSmokeShort(session));
-        addRow(lifestyleRows, LABEL_DRINK, formatDrinkShort(session.getDrinkStatus()));
+        addRow(lifestyleRows, LABEL_DRINK, formatDrinkShort(session));
+        addRow(lifestyleRows, LABEL_BINGE, formatBingeShort(session));
         addRow(lifestyleRows, LABEL_SLEEP, formatSleepShort(session.getSleepHours(), session.getSleepMinutes()));
         if (!lifestyleRows.isEmpty()) {
             groups.add(ReportResDTO.QuestionnaireGroup.builder()
@@ -122,16 +124,32 @@ public final class ReportQuestionnaireSupport {
                 .replace("흡연 (6개비/일 이상)", "매일");
     }
 
-    private static String formatDrinkShort(String drinkStatus) {
-        if (drinkStatus == null || drinkStatus.isBlank()) {
-            return VALUE_NON_DRINKER;
-        }
-        String label = AiLifestyleCategoryMapper.toDrinkDisplayLabel(drinkStatus);
+    private static String formatDrinkShort(TestSession session) {
+        String label = AiLifestyleCategoryMapper.toDrinkDisplayLabel(session.getDrinkStatus());
         if (label == null || label.isBlank()) {
             return VALUE_NON_DRINKER;
         }
         if ("안 마심".equals(label)) {
             return VALUE_NON_DRINKER;
+        }
+        return label;
+    }
+
+    private static String formatBingeShort(TestSession session) {
+        if (session.getGender() == Gender.F) {
+            String label = LifestyleDisplayLabels.bingeLabel(
+                    Gender.F,
+                    null,
+                    session.getBinge12(),
+                    session.getBingeDaysPerYear());
+            if (label == null || label.isBlank() || "정보 없음".equals(label)) {
+                return null;
+            }
+            return label;
+        }
+        String label = AiLifestyleCategoryMapper.toBingeDisplayLabel(session.getBingeStatus());
+        if (label == null || label.isBlank() || "없음".equals(label)) {
+            return null;
         }
         return label;
     }

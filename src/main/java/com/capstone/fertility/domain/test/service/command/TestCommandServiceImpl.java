@@ -10,6 +10,7 @@ import com.capstone.fertility.domain.test.exception.code.TestErrorCode;
 import com.capstone.fertility.domain.test.repository.TestSessionRepository;
 import com.capstone.fertility.domain.test.support.SleepInputSupport;
 import com.capstone.fertility.domain.user.enums.Gender;
+import com.capstone.fertility.global.ai.mapping.AiLifestyleCategoryMapper;
 import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.domain.user.exception.UserException;
 import com.capstone.fertility.domain.user.exception.code.UserErrorCode;
@@ -102,6 +103,9 @@ public class TestCommandServiceImpl implements TestCommandService {
 
         SleepInputSupport.validateOptionalPair(request.sleepHours(), request.sleepMinutes());
 
+        String resolvedDrinkStatus = AiLifestyleCategoryMapper.resolveFemaleDrinkStatus(
+                request.drinkStatus(), request.drinkLevel());
+
         session.updateFemaleStepData(
                 request.step(),
                 request.age(),
@@ -117,7 +121,7 @@ public class TestCommandServiceImpl implements TestCommandService {
                 request.pid(),
                 request.smokeLevel(),
                 request.binge12(),
-                request.drinkStatus(),
+                resolvedDrinkStatus,
                 request.cigarettesPerDay(),
                 request.bingeDaysPerYear(),
                 request.sleepHours(),
