@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class LlmProperties {
 
     private String apiKey = "";
-    private String model = "claude-3-5-sonnet-20241022";
+    private String model = "claude-sonnet-4-6";
     private String baseUrl = "https://api.anthropic.com";
     private int connectTimeoutMs = 5000;
     private int readTimeoutMs = 30000;
