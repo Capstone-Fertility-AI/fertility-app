@@ -69,6 +69,7 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
         }
 
         SleepInputSupport.validateRequiredPair(session.getSleepHours(), session.getSleepMinutes());
+        validateSessionProfile(session);
 
         // ② PSS 총점 및 구간 판별 → TestSession 최종 데이터 업데이트 및 완료
         int stressScore = pssAnswers.stream().mapToInt(Integer::intValue).sum();
@@ -190,6 +191,15 @@ public class TestResultCommandServiceImpl implements TestResultCommandService {
                 .riskLevel(saved.getRiskLevel())
                 .topFactors(saved.getTopFactors())
                 .build();
+    }
+
+    private void validateSessionProfile(TestSession session) {
+        Integer age = session.getAge();
+        Double height = session.getHeight();
+        Double weight = session.getWeight();
+        if (age == null || age < 1 || height == null || height <= 0 || weight == null || weight <= 0) {
+            throw new TestException(TestErrorCode.INCOMPLETE_SESSION_PROFILE);
+        }
     }
 
     private String resolveStressLevel(int score) {
