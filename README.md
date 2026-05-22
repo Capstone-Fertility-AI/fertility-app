@@ -242,6 +242,23 @@ WHERE flower_type IS NOT NULL
   AND flower_type NOT IN ('PEONY', 'BABYS_BREATH', 'LOTUS');
 ```
 
+#### 커뮤니티 P1 (신규 테이블)
+
+운영 DB에 **`docs/community-schema.sql`** 전체를 실행한 뒤 배포하세요. (`ddl-auto: validate` 환경)
+
+배포 후 스모크: `python scripts/e2e_community.py`  
+API 명세: `docs/COMMUNITY_API_SPEC.md`
+
+이미지 URL prefix(선택):
+
+```yaml
+app:
+  community:
+    upload:
+      directory: uploads/community
+      public-base-url: http://3.27.238.246:8080/uploads/community
+```
+
 ### AI 서버(FastAPI) 변경 사항
 
 - 응답 `result.top_factors`는 **고정 길이 3이 아니라 가변 길이 배열**로 내려주세요(중요도 순서 유지).

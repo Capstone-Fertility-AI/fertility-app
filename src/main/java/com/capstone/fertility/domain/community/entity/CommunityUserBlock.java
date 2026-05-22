@@ -7,28 +7,28 @@ import lombok.*;
 
 @Entity
 @Table(
-        name = "community_post_views",
+        name = "community_user_blocks",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_community_post_views_post_user",
-                columnNames = {"post_id", "user_id"}
+                name = "uk_community_user_blocks_blocker_blocked",
+                columnNames = {"blocker_id", "blocked_id"}
         )
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class PostView extends BaseEntity {
+public class CommunityUserBlock extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "post_view_id")
+    @Column(name = "community_user_block_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @JoinColumn(name = "blocker_id", nullable = false)
+    private User blocker;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "blocked_id", nullable = false)
+    private User blocked;
 }
