@@ -23,7 +23,7 @@ spring:
 
 llm:
   api-key: YOUR_ANTHROPIC_API_KEY
-  model: claude-3-5-sonnet-20241022
+  model: claude-sonnet-4-6
   base-url: https://api.anthropic.com
   connect-timeout-ms: 5000
   read-timeout-ms: 90000
