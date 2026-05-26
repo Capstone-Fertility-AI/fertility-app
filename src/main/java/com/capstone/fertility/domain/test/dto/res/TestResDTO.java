@@ -79,7 +79,13 @@ public class TestResDTO {
             /** 표시용 흡연 라벨 (성별·입력 방식에 따라 자동 생성) */
             String smokeLabel,
             String drinkLabel,
-            String bingeLabel
+            String bingeLabel,
+
+            /** PSS 10문항 중간 저장값 (0~4 × 10개). 미입력 시 null 또는 빈 배열 */
+            List<Integer> pssAnswers,
+
+            Integer stressScore,
+            String stressLevel
     ) {}
 
     /**

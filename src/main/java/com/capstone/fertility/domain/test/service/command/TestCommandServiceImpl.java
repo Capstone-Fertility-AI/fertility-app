@@ -125,7 +125,8 @@ public class TestCommandServiceImpl implements TestCommandService {
                 request.cigarettesPerDay(),
                 request.bingeDaysPerYear(),
                 request.sleepHours(),
-                request.sleepMinutes()
+                request.sleepMinutes(),
+                request.pssAnswers()
         );
         testSessionRepository.save(session);
     }
