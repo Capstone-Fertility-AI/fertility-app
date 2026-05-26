@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
+
 public class TestReqDTO {
 
     /**
@@ -82,7 +85,10 @@ public class TestReqDTO {
             /** 하루 평균 개비 수 (smokeLevel 대신 또는 함께) */
             Integer cigarettesPerDay,
             /** 최근 1년 5잔+ 폭음 일수 (binge12 대신 또는 함께) */
-            Integer bingeDaysPerYear
+            Integer bingeDaysPerYear,
+            /** PSS 10문항 중간 저장 (0~4 × 10개, 선택적 — 미포함 시 기존 값 유지) */
+            @Size(min = 10, max = 10, message = "PSS 문항은 정확히 10개여야 합니다.")
+            List<Integer> pssAnswers
     ) {}
 
     /**

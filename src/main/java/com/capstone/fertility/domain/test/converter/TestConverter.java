@@ -79,6 +79,10 @@ public class TestConverter {
                         session.getBingeStatus(),
                         session.getBinge12(),
                         session.getBingeDaysPerYear()))
+                .pssAnswers(session.getPssAnswers() != null && !session.getPssAnswers().isEmpty()
+                        ? session.getPssAnswers() : null)
+                .stressScore(session.getStressScore())
+                .stressLevel(session.getStressLevel())
                 .build();
     }
 }

@@ -6,8 +6,11 @@ import com.capstone.fertility.domain.user.entity.User;
 import com.capstone.fertility.global.ai.mapping.AiLifestyleCategoryMapper;
 import com.capstone.fertility.global.ai.mapping.FemaleLifestyleNormalized;
 import com.capstone.fertility.global.common.BaseEntity;
+import com.capstone.fertility.global.common.IntListConverter;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "test_sessions")
@@ -121,6 +124,11 @@ public class TestSession extends BaseEntity {
     @Column(name = "sleep_minutes")
     private Integer sleepMinutes;
 
+    /** PSS 10문항 임시 저장 (0~4 × 10개, 중간 복구용) */
+    @Convert(converter = IntListConverter.class)
+    @Column(name = "pss_answers_temp", columnDefinition = "text")
+    private List<Integer> pssAnswers;
+
     /** PSS 스트레스 설문 총점 (0~40) */
     @Column(name = "stress_score")
     private Integer stressScore;
@@ -188,7 +196,8 @@ public class TestSession extends BaseEntity {
             Integer cigarettesPerDay,
             Integer bingeDaysPerYear,
             Integer sleepHours,
-            Integer sleepMinutes
+            Integer sleepMinutes,
+            List<Integer> pssAnswers
     ) {
         if (step != null) this.currentStep = step;
         if (age != null) this.age = age;
@@ -205,6 +214,7 @@ public class TestSession extends BaseEntity {
         if (drinkStatus != null) this.drinkStatus = drinkStatus;
         if (sleepHours != null) this.sleepHours = sleepHours;
         if (sleepMinutes != null) this.sleepMinutes = sleepMinutes;
+        if (pssAnswers != null && !pssAnswers.isEmpty()) this.pssAnswers = pssAnswers;
 
         FemaleLifestyleNormalized smoke =
                 AiLifestyleCategoryMapper.normalizeFemaleSmokeInput(smokeLevel, cigarettesPerDay);
