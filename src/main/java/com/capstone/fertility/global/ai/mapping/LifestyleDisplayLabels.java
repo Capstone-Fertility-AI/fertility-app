@@ -26,10 +26,10 @@ public final class LifestyleDisplayLabels {
         if (drinkStatus == null || drinkStatus.isBlank()) {
             return "정보 없음";
         }
-        return switch (drinkStatus.trim()) {
-            case "안 마심" -> "비음주";
-            case "월 1~3회" -> "월 1~3회 음주";
-            case "주 1회 이상" -> "주 1회 이상 음주";
+        return switch (drinkStatus.trim().toUpperCase()) {
+            case "NEVER", "NONE", "안 마심" -> "비음주";
+            case "MONTHLY_1_TO_3", "SOMETIMES", "월 1~3회" -> "월 1~3회 음주";
+            case "WEEKLY_OR_MORE", "WEEKLY", "WEEKLY_1_OR_MORE", "주 1회 이상" -> "주 1회 이상 음주";
             default -> drinkStatus.trim();
         };
     }
